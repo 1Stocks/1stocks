@@ -1,0 +1,24 @@
+# Dependencies and generated output (all apps)
+node_modules/
+.next/
+out/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+
+# Local environment files; templates must contain names only, no secrets
+.env
+.env.*
+!.env.example
+
+# Solana keypairs (including devnet treasury)
+id.json
+*-keypair.json
+keypair.json
+keypairs/
+*.pem
+
+# OS files
+.DS_Store
