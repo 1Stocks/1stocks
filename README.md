@@ -1,6 +1,6 @@
 # 1Stocks
 
-1Stocks dirancang untuk memudahkan investor ritel Indonesia membeli token saham AS dengan rupiah. Pengguna memilih saham dan memasukkan nominal rupiah. 1Stocks menangani pemilihan token dan swap di belakang layar, lalu token masuk ke dompet pengguna. Pengguna tidak perlu mengatur wallet kripto, membeli token untuk gas, atau menukar rupiah ke USDC sendiri.
+1Stocks dirancang untuk memudahkan investor ritel Indonesia membeli token saham dengan rupiah. Pengguna memilih saham dan memasukkan nominal rupiah. 1Stocks menangani pemilihan token dan swap di belakang layar, lalu token masuk ke dompet pengguna. Pengguna tidak perlu mengatur wallet kripto, membeli token untuk gas, atau menukar rupiah ke USDC sendiri.
 
 ## Scope MVP
 
@@ -12,7 +12,7 @@
 
 - **Solana** adalah jaringan utama. **BNB Chain** disimpan sebagai opsi cadangan.
 - Harga atau quote ditargetkan berasal dari **Solana mainnet** setelah sumber dan rute token diverifikasi.
-- Swap demo ditargetkan berjalan di **Solana devnet** dengan token SPL tiruan dan dana uji. Jika rute uji belum siap, backend dapat menjalankan simulasi berlabel di UI.
+- Swap demo ditargetkan berjalan di **Solana devnet** dengan aset uji resmi yang kompatibel dan terverifikasi. Gunakan mint demo hanya untuk aset yang dibutuhkan tetapi belum tersedia. Jika adapter memakai hop USDC, gunakan USDC uji resmi Circle. Jika rute uji belum siap, backend dapat menjalankan simulasi berlabel di UI.
 
 ## Alur kontribusi
 
