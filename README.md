@@ -1,6 +1,6 @@
 # 1Stocks
 
-1Stocks dirancang untuk memudahkan investor ritel Indonesia membeli token saham AS dengan rupiah. Pengguna memilih saham dan memasukkan nominal rupiah. 1Stocks menangani pemilihan token dan swap di belakang layar, lalu token masuk ke dompet pengguna. Pengguna tidak perlu mengatur wallet kripto, membeli token untuk gas, atau menukar rupiah ke USDC sendiri.
+1Stocks dirancang untuk memudahkan investor ritel Indonesia membeli token saham dengan rupiah. Pengguna memilih saham dan memasukkan nominal rupiah. 1Stocks menangani pemilihan token dan swap di belakang layar, lalu token masuk ke dompet pengguna. Pengguna tidak perlu mengatur wallet kripto, membeli token untuk gas, atau menukar rupiah ke USDC sendiri.
 
 ## Scope MVP
 
