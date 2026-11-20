@@ -1,18 +1,18 @@
 # 1Stocks
 
-1Stocks adalah prototipe web desktop untuk membantu pengguna Indonesia membandingkan token yang memberi eksposur ke saham AS dan mencoba alur pembelian dalam rupiah. Demo berfokus pada Apple, dengan target membandingkan tiga penawaran penerbit agar pengguna bisa melihat dasar pemilihan token.
+1Stocks dirancang untuk memudahkan investor ritel Indonesia membeli token saham AS dengan rupiah. Pengguna memilih saham dan memasukkan nominal rupiah. 1Stocks menangani pemilihan token dan swap di belakang layar, lalu token masuk ke dompet pengguna. Pengguna tidak perlu mengatur wallet kripto, membeli token untuk gas, atau menukar rupiah ke USDC sendiri.
 
 ## Scope MVP
 
-1. Bandingkan penawaran token Apple dan tampilkan dasar rekomendasinya.
-2. Peragakan alur dari nominal rupiah hingga estimasi token dan hasil swap demo.
-3. Setelah alur perbandingan dan swap siap, sederhanakan onboarding wallet. Login Google dengan dompet otomatis masuk rencana MVP.
+1. Peragakan alur pembelian Apple di web desktop, mulai dari nominal rupiah, estimasi, dan konfirmasi hingga hasil swap demo.
+2. Gunakan agregator di backend untuk mengevaluasi penawaran token Apple dan menentukan token yang digunakan.
+3. Setelah agregasi dan swap siap, sederhanakan onboarding dengan rencana login Google dan dompet otomatis.
 
 ## Rencana teknis demo
 
 - **Solana** adalah jaringan utama. **BNB Chain** disimpan sebagai opsi cadangan.
-- Targetnya, data harga atau quote diambil dari **Solana mainnet** setelah sumber dan rute masing-masing token diverifikasi.
-- Target eksekusi swap adalah **Solana devnet** dengan token SPL tiruan dan dana uji. Jika rute uji belum siap, backend dapat menjalankan simulasi yang diberi label di UI.
+- Harga atau quote ditargetkan berasal dari **Solana mainnet** setelah sumber dan rute token diverifikasi.
+- Swap demo ditargetkan berjalan di **Solana devnet** dengan token SPL tiruan dan dana uji. Jika rute uji belum siap, backend dapat menjalankan simulasi berlabel di UI.
 
 ## Alur kontribusi
 
