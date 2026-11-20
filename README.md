@@ -12,7 +12,7 @@
 
 - **Solana** adalah jaringan utama. **BNB Chain** disimpan sebagai opsi cadangan.
 - Harga atau quote ditargetkan berasal dari **Solana mainnet** setelah sumber dan rute token diverifikasi.
-- Swap demo ditargetkan berjalan di **Solana devnet** dengan token SPL tiruan dan dana uji. Jika rute uji belum siap, backend dapat menjalankan simulasi berlabel di UI.
+- Swap demo ditargetkan berjalan di **Solana devnet** dengan aset uji resmi yang kompatibel dan terverifikasi. Gunakan mint demo hanya untuk aset yang dibutuhkan tetapi belum tersedia. Jika adapter memakai hop USDC, gunakan USDC uji resmi Circle. Jika rute uji belum siap, backend dapat menjalankan simulasi berlabel di UI.
 
 ## Alur kontribusi
 
