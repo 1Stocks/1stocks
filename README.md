@@ -1,12 +1,18 @@
 # 1Stocks
 
-1Stocks adalah MVP web desktop untuk membantu pengguna Indonesia membandingkan token saham Apple dan mencoba alur pembelian dengan rupiah (IDRX). Demo mencakup perbandingan harga, swap, serta login Google dengan dompet otomatis.
+1Stocks adalah prototipe web desktop untuk membantu pengguna Indonesia membandingkan token yang memberi eksposur ke saham AS dan mencoba alur pembelian dalam rupiah. Demo berfokus pada Apple, dengan target membandingkan tiga penawaran penerbit agar pengguna bisa melihat dasar pemilihan token.
 
-## Strategi demo
+## Scope MVP
 
-- **Solana** adalah jaringan utama MVP. **BNB Chain** disimpan sebagai opsi cadangan.
-- Harga dan quote untuk AAPLx dan AAPLon mengacu pada data **Solana mainnet**. AAPLB tampil sebagai pembanding.
-- Demo swap berjalan di **Solana devnet** dengan token SPL tiruan (`mIDRX`, `mUSDC`, `mAAPLx`, dan `mAAPLon`). Alur demo diberi label devnet dan memakai dana uji.
+1. Bandingkan penawaran token Apple dan tampilkan dasar rekomendasinya.
+2. Peragakan alur dari nominal rupiah hingga estimasi token dan hasil swap demo.
+3. Setelah alur perbandingan dan swap siap, sederhanakan onboarding wallet. Login Google dengan dompet otomatis masuk rencana MVP.
+
+## Rencana teknis demo
+
+- **Solana** adalah jaringan utama. **BNB Chain** disimpan sebagai opsi cadangan.
+- Targetnya, data harga atau quote diambil dari **Solana mainnet** setelah sumber dan rute masing-masing token diverifikasi.
+- Target eksekusi swap adalah **Solana devnet** dengan token SPL tiruan dan dana uji. Jika rute uji belum siap, backend dapat menjalankan simulasi yang diberi label di UI.
 
 ## Alur kontribusi
 
