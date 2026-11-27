@@ -27,15 +27,6 @@
 .menu dd { margin-top: 4px; overflow-wrap: anywhere; }
 .menu code { font-family: var(--digits); }
 
-.onboarding {
-  display: grid;
-  justify-items: start;
-  gap: 8px;
-  margin-top: 24px;
-}
-
-.onboarding:empty { display: none; }
-
 @media (max-width: 560px) {
   .account summary { padding-inline: 4px; }
 }

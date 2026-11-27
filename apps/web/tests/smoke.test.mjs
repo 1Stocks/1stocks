@@ -15,9 +15,16 @@ test("homepage serves 1Stocks with Indonesian document metadata", async () => {
   const html = await response.text();
   assert.match(html, /<html[^>]*lang="id"/);
   assert.match(html, /<title>1Stocks \| Beli token saham pakai rupiah<\/title>/);
-  assert.match(html, /<h1[^>]*>Beli token saham/);
+  assert.match(html, /<h1[^>]*>\s*<span[^>]*>Investasi saham AS,/);
   assert.match(html, /<main\b/);
   assert.match(html, /href="\/saham\/apple"/);
+  assert.match(html, /href="#cara-kerja"/);
+  assert.match(html, /href="#disclaimer"/);
+  assert.match(html, /\/landing\/brand-mark\.svg/);
+  assert.match(html, /\/landing\/apple-sparkline\.svg/);
+  assert.match(html, /Harga simulasi/);
+  assert.match(html, /AAPLB<\/dt><dd[^>]*>Tidak tersedia/);
+  assert.doesNotMatch(html, /AAPLB · Terbaik|Deposit Rupiah via VA|Lihat harga live/);
 });
 
 test("Apple purchase preview is reachable and accepts rupiah", async () => {

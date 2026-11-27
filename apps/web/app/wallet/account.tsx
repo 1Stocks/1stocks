@@ -5,7 +5,12 @@ import { formatAtomic } from "../saham/apple/quote-display";
 import { useWalletSession } from "./session";
 import styles from "./wallet.module.css";
 
-export function SignInControl({ className }: { className: string }) {
+export function SignInControl({ className, label = "Masuk dengan Google", pendingLabel = "Menghubungkan ke Google…", showError = true }: {
+  className: string;
+  label?: string;
+  pendingLabel?: string;
+  showError?: boolean;
+}) {
   const session = useWalletSession();
 
   switch (session.status) {
@@ -24,9 +29,9 @@ export function SignInControl({ className }: { className: string }) {
       return (
         <>
           <button className={className} type="button" onClick={session.login} disabled={session.pending}>
-            {session.pending ? "Menghubungkan ke Google…" : "Masuk dengan Google"}
+            {session.pending ? pendingLabel : label}
           </button>
-          {session.failed && <p role="alert">Google belum bisa terhubung. Coba lagi.</p>}
+          {showError && session.failed && <p role="alert">Google belum bisa terhubung. Coba lagi.</p>}
         </>
       );
     default:

@@ -1,143 +1,101 @@
 import Image from "next/image";
 import Link from "next/link";
-import { apple } from "@1stocks/shared";
-import { LegacyCalculator } from "./legacy-calculator";
-import { SignInControl } from "./wallet/account";
-import walletStyles from "./wallet/wallet.module.css";
+import localFont from "next/font/local";
+import { LandingEntry } from "./landing/entry";
+import { LandingInformation } from "./landing/information";
 
-const quickAmounts = [
-  [100000, "Rp100.000"],
-  [250000, "Rp250.000"],
-  [500000, "Rp500.000"],
-] as const;
+const inter = localFont({
+  src: "./landing/InterVariable.woff2",
+  weight: "100 900",
+  display: "swap",
+});
 
-function Brand() {
+const contentWidth = "mx-auto w-full max-w-[90rem] px-5 sm:px-8 lg:px-16 xl:px-25";
+
+function MarketSnapshot() {
   return (
-    <a className="brand" href="#awal" aria-label="1Stocks, kembali ke awal">
-      <Image src="/brand/logo-light.svg" width={124} height={40} alt="" unoptimized />
-    </a>
+    <section
+      aria-labelledby="apple-snapshot"
+      className="grid gap-4 rounded-2xl border border-solid border-landing-border bg-landing-card px-5 py-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:h-30 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)_minmax(0,1fr)] lg:items-center lg:gap-6 lg:px-7 lg:py-0"
+    >
+      <div className="grid gap-1 lg:justify-self-start">
+        <h2 id="apple-snapshot" className="text-[11px]/[18px] font-normal text-landing-muted">APPLE INC. (AAPL)</h2>
+        <p className="text-[28px]/10 font-semibold text-white">Rp5.857.470</p>
+        <p className="text-xs/[18px] text-landing-accent">+0,91% · Harga simulasi</p>
+      </div>
+
+      <Image
+        src="/landing/apple-sparkline.svg"
+        width={360}
+        height={64}
+        alt=""
+        className="block h-auto max-w-full justify-self-center lg:-translate-x-2"
+        unoptimized
+      />
+
+      <dl aria-label="Perbandingan simulasi token Apple" className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-5 gap-y-1.5 text-xs/[18px] sm:col-span-2 lg:col-span-1 lg:justify-self-end">
+        <dt className="text-landing-muted">AAPLB</dt>
+        <dd className="text-right text-[13px]/5 text-landing-muted">Tidak tersedia</dd>
+        <dt className="text-landing-muted">AAPLx · xStocks</dt>
+        <dd className="text-right text-[13px]/5 font-medium">Rp5.907.326</dd>
+        <dt className="text-landing-muted">AAPLon · Ondo</dt>
+        <dd className="text-right text-[13px]/5 font-medium text-landing-ondo">Rp5.915.859</dd>
+      </dl>
+    </section>
   );
 }
 
 export default function Home() {
   return (
-    <div className="landing" id="awal">
-      <a className="skip" href="#utama">Ke konten utama</a>
-      <header className="header">
-        <div className="frame navigation">
-          <Brand />
-          <nav aria-label="Navigasi utama">
-            <a href="#saham">Saham</a>
-            <a href="#portofolio">Portofolio</a>
+    <div className={`${inter.className} landing-page min-h-svh bg-landing-canvas text-landing-text scheme-dark`}>
+      <a href="#utama" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-10 focus:bg-landing-accent focus:p-3 focus:text-landing-action">
+        Ke konten utama
+      </a>
+      <header className={`${contentWidth} pt-6 lg:pt-9`}>
+        <div className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-4 lg:h-11 lg:grid-cols-[1fr_auto_auto] lg:gap-7">
+          <Link href="/" className="col-start-1 row-start-1 flex w-fit items-center gap-2.5 text-[19px]/8 font-semibold text-white">
+            <Image src="/landing/brand-mark.svg" alt="" width={22} height={22} unoptimized />
+            OneStocks
+          </Link>
+          <nav aria-label="Navigasi utama" className="col-span-2 col-start-1 row-start-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm/5 font-medium lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:gap-7">
+            <Link href="/saham/apple" className="hover:text-landing-accent">Pasar</Link>
+            <a href="#cara-kerja" className="hover:text-landing-accent">Cara kerja</a>
+            <a href="#disclaimer" className="text-landing-muted hover:text-landing-accent">Disclaimer</a>
           </nav>
+          <div className="col-start-2 row-start-1 justify-self-end lg:col-start-3">
+            <LandingEntry compact />
+          </div>
         </div>
       </header>
 
       <main id="utama" tabIndex={-1}>
-        <div className="hero-surface">
-          <section className="frame hero" aria-labelledby="judul">
-            <div className="hero-copy">
-              <h1 id="judul">Beli token saham<br className="desktop-break" /> pakai rupiah.</h1>
-              <p>Pilih saham, masukkan nominal, lalu lihat estimasi token dan biaya sebelum melanjutkan.</p>
-
-              <div className={walletStyles.onboarding}>
-                <SignInControl className="button button-primary" />
+        <div className={`${contentWidth} flex flex-col gap-12 pt-14 pb-8 lg:min-h-[calc(100svh-5rem)] lg:gap-0 lg:pt-0 lg:pb-11`}>
+          <section id="mulai" tabIndex={-1} aria-labelledby="judul-landing" className="flex scroll-mt-6 flex-col items-center gap-5 text-center lg:my-auto lg:min-h-[353px]">
+            <p className="rounded-full border border-solid border-landing-badge-border bg-landing-badge px-3.5 py-1.5 text-xs/[18px] text-landing-accent">
+              Pratinjau saham AS · Simulasi dengan rupiah
+            </p>
+            <h1 id="judul-landing" className="max-w-[820px] text-4xl/10 font-semibold text-balance text-white [font-optical-sizing:none] lg:text-[56px]/16">
+              <span className="lg:block">Investasi saham AS,</span>{" "}
+              <span className="lg:block">semuanya di satu tempat.</span>
+            </h1>
+            <p className="max-w-[640px] text-base/6 lg:text-[17px]/[26px]">
+              Simulasikan pembelian token saham Apple dengan rupiah. OneStocks membandingkan estimasi dari xStocks dan Ondo.
+            </p>
+            <div className="flex w-full flex-col items-center gap-3.5 sm:w-auto sm:flex-row sm:items-start">
+              <div className="grid w-full justify-items-center gap-2 text-sm sm:w-[220px]">
+                <LandingEntry />
               </div>
-              <div className="asset-list" id="saham">
-                <h2>Saham yang bisa dicoba</h2>
-                <Link href="/saham/apple" className="asset-option">
-                  <span className="asset-name"><strong>{apple.name}</strong><span>{apple.ticker}</span></span>
-                  <span className="asset-action">Lihat estimasi Apple</span>
-                </Link>
-              </div>
-            </div>
-
-            <div className="calculator" id="estimasi">
-              <header className="order-header">
-                <h2 id="order-title">Contoh kalkulator Apple</h2>
-                <p>Harga contoh Rp4.000.000 per token</p>
-              </header>
-
-              <form id="estimate-form" aria-labelledby="order-title">
-                <label htmlFor="nominal">Nominal rupiah</label>
-                <div className="amount-field">
-                  <span aria-hidden="true">Rp</span>
-                  <input id="nominal" name="amount" type="text" inputMode="numeric" autoComplete="off" maxLength={12} defaultValue="250.000" aria-describedby="amount-help" />
-                </div>
-                <p id="amount-help" className="amount-help"></p>
-                <div className="quick-amounts" role="group" aria-label="Pilihan nominal">
-                  {quickAmounts.map(([amount, label]) => (
-                    <button type="button" key={amount} data-amount={amount} aria-pressed={amount === 250000 ? "true" : "false"}>{label}</button>
-                  ))}
-                </div>
-                <dl className="quote">
-                  <div className="fee-row">
-                    <dt>Biaya <span>Termasuk dalam nominal</span></dt>
-                    <dd id="estimate-fee">Rp1.250</dd>
-                  </div>
-                  <div className="estimate-output">
-                    <dt>Estimasi token diterima</dt>
-                    <dd id="estimate-tokens">0,062187</dd>
-                  </div>
-                </dl>
-                <button className="button button-primary" type="submit">Tinjau estimasi</button>
-                <p id="estimate-live" className="sr-only" aria-live="polite" aria-atomic="true"></p>
-              </form>
-
-              <section id="order-review" className="review" aria-labelledby="review-title" hidden>
-                <h3 id="review-title" tabIndex={-1}>Tinjau estimasi Apple</h3>
-                <dl className="quote review-quote">
-                  <div><dt>Nominal rupiah</dt><dd id="review-amount"></dd></div>
-                  <div className="fee-row"><dt>Biaya <span>Termasuk dalam nominal</span></dt><dd id="review-fee"></dd></div>
-                  <div className="review-total"><dt>Total estimasi</dt><dd id="review-total"></dd></div>
-                  <div className="estimate-output"><dt>Estimasi token diterima</dt><dd id="review-tokens"></dd></div>
-                </dl>
-                <details className="quote-details">
-                  <summary>Rincian estimasi</summary>
-                  <p>Harga contoh Rp4.000.000 per token dengan biaya 0,5% dari nominal. Token, penerbit, dan rute belum tersedia di pratinjau.</p>
-                </details>
-                <p className="order-note">Tidak ada rupiah yang ditarik.</p>
-                <button className="button button-primary" id="finish-preview" type="button">Selesaikan pratinjau</button>
-                <button className="button button-text" id="edit-order" type="button">Ubah nominal</button>
-              </section>
+              <Link href="/saham/apple" className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-solid border-landing-border bg-landing-card px-4 text-[15px]/5 font-medium text-landing-text hover:border-landing-accent sm:w-[150px]">
+                Lihat estimasi
+              </Link>
             </div>
           </section>
+          <MarketSnapshot />
         </div>
-
-        <section className="ownership" id="portofolio" aria-labelledby="portfolio-title">
-          <div className="frame section-grid">
-            <h2 id="portfolio-title" tabIndex={-1}>Portofolio</h2>
-            <div className="portfolio-state" aria-live="polite">
-              <h3 id="portfolio-state-title">Portofolio belum terhubung</h3>
-              <p id="portfolio-state-detail">Kepemilikan tampil setelah transaksi berhasil dikonfirmasi di aplikasi.</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="faq" id="faq" aria-labelledby="faq-judul">
-          <div className="frame section-grid">
-            <h2 id="faq-judul">Tentang token saham</h2>
-            <div className="faq-list">
-              <details>
-                <summary>Apa yang saya terima saat membeli?</summary>
-                <p>Token yang mengikuti nilai saham Apple. Hak pemegang bergantung pada ketentuan penerbit token.</p>
-              </details>
-              <details>
-                <summary>Apakah harga bisa berubah?</summary>
-                <p>Harga dan jumlah token bisa berubah sebelum eksekusi. Kalkulator ini memakai harga contoh.</p>
-              </details>
-            </div>
-          </div>
-        </section>
+        <div className={contentWidth}>
+          <LandingInformation />
+        </div>
       </main>
-
-      <footer className="footer">
-        <div className="frame footer-content">
-          <Brand />
-          <a href="#awal">Kembali ke atas</a>
-        </div>
-      </footer>
-      <LegacyCalculator />
     </div>
   );
 }
