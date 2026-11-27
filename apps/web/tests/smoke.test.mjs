@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 // Run against a local dev or production server, never an external service.
-const baseUrl = process.env.TEST_BASE_URL ?? "http://127.0.0.1:3000";
+const baseUrl = process.env.TEST_BASE_URL ?? "http://localhost:3000";
 const url = new URL(baseUrl);
 if (!["127.0.0.1", "localhost", "[::1]"].includes(url.hostname)) {
   throw new Error("TEST_BASE_URL must point to localhost");
