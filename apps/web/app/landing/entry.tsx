@@ -28,7 +28,7 @@ export function LandingEntry({ compact = false }: { compact?: boolean }) {
   return (
     <SignInControl
       className={className}
-      label={compact ? "Masuk" : undefined}
+      label="Masuk"
       pendingLabel={compact ? "Memuat…" : undefined}
       showError={!compact}
     />

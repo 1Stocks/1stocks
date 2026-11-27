@@ -11,6 +11,7 @@ import { formatAtomic, isCurrentQuote, quoteErrors, readRupiah, type QuotedApple
 import { SignInControl } from "../../wallet/account";
 import { useWalletSession } from "../../wallet/session";
 import { canPreviewApple } from "../../wallet/session-policy";
+import { IssuerAnalysis } from "./issuer-analysis";
 import styles from "./preview.module.css";
 
 const presets = [
@@ -450,6 +451,7 @@ function ApplePurchase({ canQuote }: { canQuote: boolean }) {
             </div>
           </div>
           <IssuerTerms set={comparison.set} />
+          <IssuerAnalysis key={comparison.set.data.quotes.map(quote => quote.status === "quoted" ? quote.quoteId : quote.token).join(":")} amount={comparison.set.amount} />
         </section>
     )}
 
@@ -508,6 +510,7 @@ function ApplePurchase({ canQuote }: { canQuote: boolean }) {
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           <Link className={`${styles.primary} inline-flex items-center`} href="/beranda">Kembali ke Beranda</Link>
           <button className={styles.secondary} type="button" onClick={backToDetail}>Kembali ke Apple</button>
+          <Link href="/demo-devnet" className="self-center text-sm text-landing-accent">Coba transfer demo Solana devnet →</Link>
         </div>
       </section>
     )}
