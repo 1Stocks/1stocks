@@ -19,15 +19,15 @@ export function normalizeCatalog(products: readonly CatalogProduct[]) {
   const owners = new Map<string, Set<string>>();
   for (const product of products) {
     for (const token of product.deployments) {
-      const key = `${product.issuer}:${token.chain}:${token.address}`;
+      const key = `${token.chain}:${token.address}`;
       const claims = owners.get(key) ?? new Set<string>();
-      claims.add(product.underlying.isin ?? product.symbol);
+      claims.add(`${product.issuer}:${product.underlying.isin ?? product.symbol}`);
       owners.set(key, claims);
     }
   }
   for (const product of products) {
     const deployments = product.deployments.filter(({ chain, address }) => {
-      const identity = `${product.issuer}:${chain}:${address}`;
+      const identity = `${chain}:${address}`;
       if ((owners.get(identity)?.size ?? 0) > 1 || identities.has(identity)) return false;
       identities.add(identity);
       return true;

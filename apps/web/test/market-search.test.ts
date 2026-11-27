@@ -20,6 +20,7 @@ test("same ticker with different ISIN stays distinct and conflicting mint claims
   const product = catalog[0].products[0];
   const other = { ...product, underlying: { ...product.underlying, isin: "US88160R1014" } };
   assert.deepEqual(normalizeCatalog([product, other]), []);
+  assert.deepEqual(normalizeCatalog([product, { ...product, issuer: "bstocks" }]), []);
   const distinct = { ...other, deployments: [{ chain: "eip155:56", address: "0x0123456789abcdef0123456789abcdef01234567", standard: "BEP-20" }] };
   assert.equal(normalizeCatalog([product, distinct]).length, 2);
   assert.equal(normalizeCatalog([product, product])[0].products.length, 1);

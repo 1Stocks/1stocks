@@ -1,6 +1,8 @@
 import { execFileSync } from "node:child_process";
+import { realpathSync } from "node:fs";
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { isAbsolute, relative, resolve, sep } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { address, createSolanaRpc, signature, type Address } from "@solana/kit";
 import { findAssociatedTokenPda, TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
 import tokens from "../config/demo-tokens.json";
@@ -8,6 +10,7 @@ import tokens from "../config/demo-tokens.json";
 const endpoint = "https://api.devnet.solana.com";
 const rpc = createSolanaRpc(endpoint);
 const stateDirectory = new URL("../.state/", import.meta.url);
+const checkoutRoot = realpathSync(fileURLToPath(new URL("../../../", import.meta.url)));
 const operations = ["create", "verify", "account", "mint", "transfer", "balance"];
 type Receipt = { mint: Address; provisioningSignature: string };
 
@@ -16,10 +19,17 @@ function required(value: string | undefined, name: string) {
   return value;
 }
 
+export function externalKeypairPath(path: string) {
+  const actualPath = realpathSync(path);
+  const fromCheckout = relative(checkoutRoot, actualPath);
+  if (!isAbsolute(fromCheckout) && fromCheckout !== ".." && !fromCheckout.startsWith(`..${sep}`)) {
+    throw new Error("Store demo keypairs outside the repository");
+  }
+  return actualPath;
+}
+
 function keypair(name: string) {
-  const path = resolve(required(process.env[name], name));
-  if (path.startsWith(resolve(".") + "/")) throw new Error("Store demo keypairs outside the repository");
-  return path;
+  return externalKeypairPath(required(process.env[name], name));
 }
 
 function run(command: string, args: string[]) {
@@ -131,7 +141,7 @@ async function main() {
   console.log(JSON.stringify({ signature: tx, explorer: `https://explorer.solana.com/tx/${tx}?cluster=devnet`, account: ata }, null, 2));
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${resolve(process.argv[1])}`).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   void main().catch(error => {
     console.error(error instanceof Error ? error.message.split("\n")[0] : "Demo token operation failed");
     process.exitCode = 1;
