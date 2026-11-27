@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { appleIssuerProfiles } from "@1stocks/shared";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useWalletSession } from "../../wallet/session";
 
 type Analysis = {
   status: "OK";
@@ -28,15 +30,32 @@ const documents: Record<string, string> = {
 const time = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", timeStyle: "medium" });
 
 export function IssuerAnalysis({ amount }: { amount: string }) {
-  const [state, setState] = useState<"idle" | "loading" | "error" | Analysis>("idle");
+  const session = useWalletSession();
+  const [state, setState] = useState<"idle" | "loading" | "error" | "session-expired" | "rate-limited" | Analysis>("idle");
 
   async function load() {
+    if (session.status !== "signed-in") return;
     setState("loading");
     try {
+      const token = await session.getAccessToken();
+      if (!token) {
+        setState("session-expired");
+        return;
+      }
       const response = await fetch(`/api/analysis/apple?amountIdrx=${encodeURIComponent(amount)}`, {
-        method: "POST", signal: AbortSignal.timeout(25_000),
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(32_000),
       });
+      if (response.status === 401) {
+        setState("session-expired");
+        return;
+      }
       const data = await response.json();
+      if (response.status === 429 || data.status === "RATE_LIMITED") {
+        setState("rate-limited");
+        return;
+      }
       setState(data.status === "OK" ? data : "error");
     } catch {
       setState("error");
@@ -71,9 +90,17 @@ export function IssuerAnalysis({ amount }: { amount: string }) {
         </>
       )}
       {state === "error" && <p role="alert" className="text-sm">Analisis AI belum tersedia. Kamu tetap bisa membandingkan kuotasi.</p>}
-      <button type="button" disabled={state === "loading"} onClick={load} className="rounded-lg border border-solid border-landing-border bg-landing-badge px-3 py-2 text-sm text-landing-accent!">
-        {state === "loading" ? "Meminta analisis…" : typeof state === "object" ? "Perbarui analisis" : "Minta analisis AI"}
-      </button>
+      {state === "session-expired" && <p role="alert" className="text-sm">Sesi masuk perlu diperbarui. Masuk ulang dengan Google untuk memakai analisis AI.</p>}
+      {state === "rate-limited" && <p role="status" className="text-sm">Batas analisis tercapai. Coba lagi sebentar.</p>}
+      {session.status !== "signed-in" ? (
+        <Alert variant="info" role="status">
+          <AlertDescription>Analisis AI tersedia setelah masuk dengan Google. Kuotasi tetap bisa dibandingkan dalam mode tamu.</AlertDescription>
+        </Alert>
+      ) : (
+        <button type="button" disabled={state === "loading"} onClick={load} className="rounded-lg border border-solid border-landing-border bg-landing-badge px-3 py-2 text-sm text-landing-accent!">
+          {state === "loading" ? "Meminta analisis…" : typeof state === "object" ? "Perbarui analisis" : "Minta analisis AI"}
+        </button>
+      )}
     </section>
   );
 }

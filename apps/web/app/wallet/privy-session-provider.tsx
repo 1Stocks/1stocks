@@ -116,6 +116,7 @@ function AuthenticatedSession({ user, logout, children }: {
   logout: () => Promise<void>;
   children: ReactNode;
 }) {
+  const { getAccessToken } = usePrivy();
   const { ready: walletsReady } = useWallets();
   const { createWallet } = useCreateWallet();
   const [logoutAction, setLogoutAction] = useState<"idle" | "pending" | "failed">("idle");
@@ -154,6 +155,7 @@ function AuthenticatedSession({ user, logout, children }: {
   const session: WalletSession = {
     status: "signed-in",
     userId: user.id,
+    getAccessToken,
     google: user.google ? { name: user.google.name, email: user.google.email } : undefined,
     logout: endSession,
     pending: logoutAction === "pending",
