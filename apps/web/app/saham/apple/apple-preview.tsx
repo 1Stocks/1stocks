@@ -8,6 +8,9 @@ import {
   type AppleQuotesResponse, type QuoteAmount, type QuoteFee,
 } from "@1stocks/shared";
 import { formatAtomic, isCurrentQuote, quoteErrors, readRupiah, type QuotedApple } from "./quote-display";
+import { AccountMenu, SignInControl } from "../../wallet/account";
+import { useWalletSession } from "../../wallet/session";
+import { canPreviewApple } from "../../wallet/session-policy";
 import styles from "./preview.module.css";
 
 const presets = [
@@ -179,6 +182,12 @@ function IssuerTerms({ set }: { set: QuoteSet }) {
 }
 
 export function ApplePreview() {
+  const session = useWalletSession();
+  const sessionKey = session.status === "signed-in" ? session.userId : session.status;
+  return <ApplePurchase key={sessionKey} canQuote={canPreviewApple(session.status)} />;
+}
+
+function ApplePurchase({ canQuote }: { canQuote: boolean }) {
   const [amount, setAmount] = useState("");
   const [showValidation, setShowValidation] = useState(false);
   const [step, setStep] = useState<Step>({ name: "detail" });
@@ -310,10 +319,7 @@ export function ApplePreview() {
             <MarketIcon />
             <span>Pasar</span><span aria-hidden="true">/</span><strong>Apple</strong>
           </button>
-          <details className={styles.wallet}>
-            <summary>Dompet belum terhubung</summary>
-            <p>Dompet Solana belum tersedia di pratinjau ini. Kamu tetap bisa melihat estimasi.</p>
-          </details>
+          <AccountMenu buttonClass={styles.secondary} />
         </header>
         <div className={styles.marketStrip}>
           <strong>{apple.ticker}</strong>
@@ -352,7 +358,13 @@ export function ApplePreview() {
                 </div>
 
                 <div className={`${styles.assetPanels} ${styles.buyPanel}`}>
-                <form className={`${styles.panel} ${styles.buy}`} onSubmit={submitAmount} noValidate>
+                {!canQuote && (
+                  <section className={`${styles.panel} ${styles.buy}`} aria-label="Akses pratinjau Apple">
+                    <h2>Beli Apple</h2>
+                    <SignInControl className={styles.primary} />
+                  </section>
+                )}
+                {canQuote && <form className={`${styles.panel} ${styles.buy}`} onSubmit={submitAmount} noValidate>
                   <h2>Beli Apple</h2>
                   <label htmlFor="apple-amount">Jumlah (rupiah)</label>
                   <div className={styles.amountField} data-invalid={invalid || undefined}>
@@ -378,7 +390,7 @@ export function ApplePreview() {
                     {busy ? "Memeriksa penawaran penerbit…" : offer ? "Perbarui estimasi" : "Lihat estimasi"}
                   </button>
                   {busy && <span className="sr-only" role="status">Meminta penawaran token Apple.</span>}
-                </form>
+                </form>}
                 {offer && offerSummary && (
                   <section className={`${styles.panel} ${styles.offer}`} aria-label="Hasil evaluasi penerbit" aria-live="polite">
                     <h2>{offerSummary.title}</h2>

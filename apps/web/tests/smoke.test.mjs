@@ -40,6 +40,14 @@ test("Apple quote endpoint rejects invalid amounts before contacting the provide
   assert.deepEqual(await response.json(), { code: "INVALID_AMOUNT" });
 });
 
+test("Solana balance endpoint rejects invalid public addresses", async () => {
+  const response = await fetch(new URL("/api/wallet/solana-balance?address=invalid", url), {
+    signal: AbortSignal.timeout(30_000),
+  });
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { code: "INVALID_ADDRESS" });
+});
+
 test("unknown routes return 404", async () => {
   const response = await fetch(new URL("/not-a-real-page", url), {
     signal: AbortSignal.timeout(30_000),

@@ -78,18 +78,6 @@
   color: var(--muted);
 }
 .assetLink strong { color: var(--ink); font-weight: 600; }
-.wallet { position: relative; font-size: 13px; }
-.wallet summary { cursor: pointer; color: var(--muted); padding: 9px 10px; }
-.wallet p {
-  position: absolute;
-  z-index: 2;
-  inset: calc(100% + 4px) 0 auto auto;
-  width: min(270px, calc(100vw - 32px));
-  padding: 13px 15px;
-  border: 1px solid var(--control);
-  border-radius: 8px;
-  background: var(--surface);
-}
 .marketStrip { min-height: 36px; gap: 14px; color: var(--muted); font-size: 13px; }
 .marketStrip strong { color: var(--ink); font-weight: 650; font-family: var(--digits); }
 
@@ -288,7 +276,6 @@
 @media (max-width: 620px) {
   .topbar, .marketStrip { padding-inline: 16px; }
   .topbar { min-height: 57px; gap: 5px; }
-  .wallet summary { padding-inline: 4px; }
   .main { padding: 18px 16px 32px; }
   .assetHeading { margin-bottom: 19px; }
   .detailGrid { display: flex; flex-direction: column; gap: 13px; }

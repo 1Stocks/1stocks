@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { apple } from "@1stocks/shared";
 import { LegacyCalculator } from "./legacy-calculator";
+import { SignInControl } from "./wallet/account";
+import walletStyles from "./wallet/wallet.module.css";
 
 const quickAmounts = [
   [100000, "Rp100.000"],
@@ -38,6 +40,9 @@ export default function Home() {
               <h1 id="judul">Beli token saham<br className="desktop-break" /> pakai rupiah.</h1>
               <p>Pilih saham, masukkan nominal, lalu lihat estimasi token dan biaya sebelum melanjutkan.</p>
 
+              <div className={walletStyles.onboarding}>
+                <SignInControl className="button button-primary" />
+              </div>
               <div className="asset-list" id="saham">
                 <h2>Saham yang bisa dicoba</h2>
                 <Link href="/saham/apple" className="asset-option">
