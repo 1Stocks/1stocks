@@ -1,6 +1,6 @@
 "use client";
 
-import { PrivyProvider, useLoginWithOAuth, usePrivy, type PrivyClientConfig, type User } from "@privy-io/react-auth";
+import { PrivyProvider, useLogin, useModalStatus, usePrivy, type PrivyClientConfig, type User } from "@privy-io/react-auth";
 import { useCreateWallet, useWallets } from "@privy-io/react-auth/solana";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -9,7 +9,14 @@ import { embeddedSolanaAddress, isPrivyAppIdValid } from "./session-policy";
 
 const config: PrivyClientConfig = {
   loginMethods: ["google"],
-  appearance: { walletChainType: "solana-only" },
+  appearance: {
+    walletChainType: "solana-only",
+    theme: "#0B100A",
+    accentColor: "#B3DC62",
+    logo: "/brand/logo-dark.svg",
+    landingHeader: "Selamat datang di OneStocks",
+    loginMessage: "Masuk untuk menjelajahi saham dan melihat estimasi token.",
+  },
   embeddedWallets: {
     showWalletUIs: false,
     solana: { createOnLogin: "off" },
@@ -59,22 +66,26 @@ function useReadinessTimeout(ready: boolean) {
 function SessionBridge({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { ready, authenticated, user, logout } = usePrivy();
-  const { state: oauth, initOAuth } = useLoginWithOAuth({
+  const { isOpen } = useModalStatus();
+  const [loginFailed, setLoginFailed] = useState(false);
+  const { login: openLogin } = useLogin({
     onComplete: () => {
       if (window.location.pathname === "/") router.replace("/beranda");
     },
+    onError: (error) => {
+      setLoginFailed(error !== "exited_auth_flow");
+    },
   });
-  const [loginAction, setLoginAction] = useState<"idle" | "pending" | "failed">("idle");
   const sessionReady = ready && (!authenticated || user !== null);
   const timedOut = useReadinessTimeout(sessionReady);
 
-  async function login() {
-    setLoginAction("pending");
+  function login() {
+    if (isOpen) return;
+    setLoginFailed(false);
     try {
-      await initOAuth({ provider: "google" });
-      setLoginAction("idle");
+      openLogin();
     } catch {
-      setLoginAction("failed");
+      setLoginFailed(true);
     }
   }
 
@@ -82,7 +93,7 @@ function SessionBridge({ children }: { children: ReactNode }) {
     return (
       <AuthenticatedSession key={user.id} user={user} logout={async () => {
         await logout();
-        setLoginAction("idle");
+      setLoginFailed(false);
       }}>
         {children}
       </AuthenticatedSession>
@@ -93,8 +104,8 @@ function SessionBridge({ children }: { children: ReactNode }) {
     ? {
         status: "signed-out",
         login,
-        pending: loginAction === "pending" || oauth.status === "loading",
-        failed: loginAction === "failed" || oauth.status === "error",
+        pending: isOpen,
+        failed: loginFailed,
       }
     : { status: timedOut ? "unavailable" : "loading" };
   return <WalletSessionContext.Provider value={session}>{children}</WalletSessionContext.Provider>;

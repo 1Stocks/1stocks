@@ -25,6 +25,7 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; background: #fff; }
+#privy-dialog { font-family: var(--font-1stocks-privy), system-ui, sans-serif; }
 [hidden] { display: none !important; }
 
 @layer base {
