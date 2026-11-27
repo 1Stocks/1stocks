@@ -37,6 +37,27 @@ test("Apple purchase preview is reachable and accepts rupiah", async () => {
   assert.match(html, /<h1>Apple Inc\.<\/h1>/);
   assert.match(html, /Jumlah \(rupiah\)/);
   assert.match(html, /Lihat estimasi/);
+  assert.match(html, /href="\/pasar"/);
+});
+
+test("the application routes expose market search and real empty states", async () => {
+  const routes = [
+    ["/beranda", /Belum ada aset tercatat/],
+    ["/pasar?q=aapl", /Apple.*AAPL/],
+    ["/pasar?q=Netflix", /Tidak ada hasil untuk/],
+    ["/portofolio", /Belum ada aset saham tercatat/],
+    ["/riwayat?jenis=beli", /Belum ada transaksi beli/],
+    ["/pengaturan", /Verifikasi identitas.*belum tersedia/],
+    ["/pengaturan/keamanan", /Pengaturan passkey.*belum tersedia/],
+    ["/bantuan", /Apa itu token saham\?/],
+    ["/deposit", /<button[^>]*disabled[^>]*>Lanjut bayar<\/button>/],
+    ["/withdraw", /<button[^>]*disabled[^>]*>Tarik dana<\/button>/],
+  ];
+  for (const [path, expected] of routes) {
+    const response = await fetch(new URL(path, url), { signal: AbortSignal.timeout(30_000) });
+    assert.equal(response.status, 200, path);
+    assert.match(await response.text(), expected, path);
+  }
 });
 
 test("Apple quote endpoint rejects invalid amounts before contacting the provider", async () => {

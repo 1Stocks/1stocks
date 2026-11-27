@@ -1,0 +1,4 @@
+export const panel = "rounded-xl border border-solid border-landing-border bg-landing-card p-[18px]";
+export const primaryButton = "inline-flex min-h-11 cursor-pointer items-center justify-center rounded-[10px] border border-solid border-transparent bg-landing-accent px-4 text-center text-sm font-semibold text-landing-action hover:bg-landing-accent-hover disabled:cursor-default disabled:opacity-45 disabled:hover:bg-landing-accent";
+export const secondaryButton = "inline-flex min-h-11 cursor-pointer items-center justify-center rounded-[10px] border border-solid border-landing-border bg-landing-badge px-4 text-center text-sm font-medium text-landing-text hover:bg-landing-border disabled:cursor-default disabled:opacity-45 disabled:hover:bg-landing-badge";
+export const pageTitle = "text-[28px]/9 font-semibold tracking-tight text-white";

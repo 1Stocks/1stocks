@@ -1,116 +1,53 @@
-.shell {
-  --background: #0c0b0a;
-  --sidebar: #100f0e;
-  --surface: #151413;
-  --field: #0e0d0c;
-  --line: #2c2825;
-  --control: #453b32;
-  --ink: #f4f0eb;
-  --muted: #b7aea4;
-  --accent: #ff801c;
-  --accent-text: #ffac64;
-  --positive: #49d6a0;
+.main {
+  --surface: var(--color-landing-card);
+  --field: var(--color-landing-canvas);
+  --line: var(--color-landing-border);
+  --control: var(--color-landing-badge-border);
+  --ink: var(--color-landing-text);
+  --muted: var(--color-landing-muted);
+  --accent: var(--color-landing-accent);
+  --accent-text: var(--color-landing-accent);
+  --positive: var(--color-landing-accent);
   --negative: #ffaaa1;
   --digits: ui-monospace, "SFMono-Regular", Consolas, monospace;
 
-  display: grid;
-  grid-template-columns: 232px minmax(0, 1fr);
-  min-height: 100vh;
-  color-scheme: dark;
-  color: var(--ink);
-  background: var(--background);
-  font: 400 15px/1.5 "Instrument Sans", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
   font-variant-numeric: tabular-nums;
 }
 
-.shell :where(h1, h2, h3, p, dl, dd) { margin: 0; }
-.shell :where(button, input) { font: inherit; color: inherit; }
-.shell button { cursor: pointer; }
-.shell button:disabled { cursor: default; opacity: .6; }
-.shell a { color: inherit; }
-.shell :focus-visible { outline: 2px solid var(--accent-text); outline-offset: 3px; }
-.shell h1:focus { outline: none; }
+.main :where(button, input) { color: inherit; }
+.main button { cursor: pointer; }
+.main button:disabled { cursor: default; opacity: .6; }
+.main h1:focus { outline: none; }
 
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  padding: 16px 14px;
-  border-right: 1px solid var(--line);
-  background: var(--sidebar);
-}
-
-.brand { display: flex; align-items: center; min-height: 40px; margin: 0 7px 16px; width: fit-content; }
-.nav { display: grid; gap: 5px; }
-.nav :where(a, button) {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  min-height: 43px;
-  padding: 0 11px;
-  border: 0;
-  border-left: 2px solid transparent;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--muted);
-  text-decoration: none;
-  text-align: left;
-}
-.nav svg, .assetLink svg { flex: 0 0 17px; width: 17px; height: 17px; }
-.nav :where(a, button):hover { background: #201d1a; color: var(--ink); }
-.nav [aria-current] { border-left-color: var(--accent); background: #1c1a18; color: var(--ink); }
-.sidebarFooter { margin: auto 9px 0; color: var(--muted); font-size: 13px; }
-
-.workspace { min-width: 0; }
-.topbar, .marketStrip { display: flex; align-items: center; border-bottom: 1px solid var(--line); padding-inline: 24px; }
-.topbar { min-height: 65px; gap: 16px; justify-content: space-between; }
-.assetLink {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 40px;
-  padding: 0 12px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  color: var(--muted);
-}
-.assetLink strong { color: var(--ink); font-weight: 600; }
-.marketStrip { min-height: 36px; gap: 14px; color: var(--muted); font-size: 13px; }
-.marketStrip strong { color: var(--ink); font-weight: 650; font-family: var(--digits); }
-
-.main { max-width: 1550px; margin: 0 auto; padding: 23px 24px 48px; }
 .main h1 { font-size: 32px; line-height: 1.15; font-weight: 680; letter-spacing: -.035em; }
 .main h2 { font-size: 19px; line-height: 1.25; font-weight: 650; letter-spacing: -.015em; }
 .main h3 { font-size: 14px; font-weight: 650; }
-.assetHeading { display: flex; align-items: center; gap: 13px; margin: 3px 0 28px; }
-.assetHeading p { margin-top: 3px; color: var(--muted); font-size: 14px; }
-.assetMark {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  background: #f4f0eb;
-  color: #100e0c;
-  border-radius: 50%;
-  font-weight: 700;
-}
+.assetHeading { grid-area: title; }
+.assetHeading p { margin-top: 5px; color: var(--muted); font-size: 14px; }
 .detailGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(330px, 1fr);
+  grid-template-columns: minmax(0, 1.8fr) minmax(315px, 1fr);
+  grid-template-areas: "title buy" "stock buy";
+  grid-template-rows: auto 1fr;
   align-items: start;
-  gap: 18px;
+  gap: 18px clamp(18px, 3.8vw, 56px);
 }
 .assetPanels, .compare { display: grid; gap: 14px; }
+.stockPanels { grid-area: stock; min-width: 0; gap: 20px; }
+.buyPanel { grid-area: buy; min-width: 0; }
 .panel { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .panel > p { margin-top: 9px; color: var(--muted); }
-.marketPanel { padding: 20px; }
-.marketPanel .lines { margin-top: 16px; }
-.marketPanel > p { margin-top: 18px; padding-top: 13px; border-top: 1px solid var(--line); }
-.termsLinks { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; }
+.termsLinks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
 .termsLinks a, .panel dd a { color: var(--accent-text); text-underline-offset: 4px; }
+
+@media (max-width: 900px) {
+  .detailGrid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "title" "buy" "stock";
+  }
+}
 
 .buy { display: grid; gap: 12px; }
 .buy h2 { margin-bottom: 4px; }
@@ -139,13 +76,13 @@
   letter-spacing: -.035em;
 }
 .amountField input:focus-visible { outline: 0; }
-.amountField input::placeholder { color: #8c8279; }
+.amountField input::placeholder { color: var(--muted); }
 .presets { display: flex; flex-wrap: wrap; gap: 6px; }
 .presets button, .secondary {
   padding: 7px 11px;
   border: 1px solid var(--control);
   border-radius: 7px;
-  background: #1b1917;
+  background: var(--color-landing-badge);
   font-size: 13px;
   font-weight: 550;
 }
@@ -158,18 +95,18 @@
   min-height: 46px;
   padding: 10px 17px;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: 999px;
   background: var(--accent);
-  color: #181009;
+  color: var(--color-landing-action);
   font-weight: 680;
 }
-.primary:not(:disabled):hover { background: #ffa653; }
-.primary:disabled { background: #664628; color: #f3dfcc; opacity: 1; }
+.primary:not(:disabled):hover { background: var(--color-landing-accent-hover); }
+.primary:disabled { opacity: .65; }
 .buy .primary { width: 100%; margin-top: 3px; }
 .offer { display: grid; gap: 10px; }
 .offer > p { margin: 0; font-size: 14px; }
 .offer .lines { margin: 2px 0 4px; font-size: 14px; }
-.shell .error { color: var(--negative); font-size: 14px; }
+.main .error { color: var(--negative); font-size: 14px; }
 
 .back {
   width: fit-content;
@@ -189,7 +126,7 @@
 .quoteToolbar > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 13px; }
 .quoteToolbar span, .quoteToolbar small { color: var(--muted); }
 .quoteToolbar strong { font: 650 16px/1.4 var(--digits); }
-.decision { margin-top: 14px; padding: 10px 12px; border-left: 2px solid var(--accent); background: #211a14; }
+.decision { margin-top: 14px; padding: 10px 12px; border-left: 2px solid var(--accent); background: var(--color-landing-badge); }
 .decision p { margin-top: 3px; color: var(--muted); font-size: 14px; }
 .tableWrap { margin: 13px 0 15px; }
 .quoteTable { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
@@ -199,14 +136,14 @@
 .quoteTable strong { font-weight: 650; }
 .quoteTable small, .lines small { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; font-weight: 400; }
 .quoteTable tbody th { font-weight: 550; }
-.quoteTable tr[data-selected] { background: #291d13; box-shadow: inset 2px 0 var(--accent); }
+.quoteTable tr[data-selected] { background: var(--color-landing-badge); box-shadow: inset 2px 0 var(--accent); }
 .quoteTable .numeric { text-align: right; white-space: nowrap; font: 450 13px/1.5 var(--digits); }
 .quoteTable thead th:nth-child(2), .quoteTable thead th:nth-child(3) { text-align: right; }
 .quoteTable td.unavailable { text-align: left; color: var(--negative); }
 .quoteFooter p { color: var(--muted); font-size: 13px; }
 .quoteFooter .primary { flex-shrink: 0; }
-.shell .available { color: var(--positive); }
-.shell .expired { color: var(--negative); }
+.main .available { color: var(--positive); }
+.main .expired { color: var(--negative); }
 .issuerTerms { width: 100%; margin-top: 11px; border-collapse: collapse; table-layout: fixed; text-align: left; font-size: 14px; }
 .issuerTerms :where(th, td) { padding: 9px 9px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
 .issuerTerms :where(th, td):last-child { padding-right: 0; }
@@ -231,7 +168,7 @@
 .dialog .lines { font-size: 14px; }
 .dialog > .lines { margin: 16px 0; }
 .lines .figure { font-family: var(--digits); }
-.dialog .lines small { font-family: "Instrument Sans", system-ui, sans-serif; }
+.dialog .lines small { font-family: inherit; }
 .fees { margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--line); }
 .fees > p { margin-top: 5px; font-size: 13px; color: var(--muted); }
 .fees .lines { margin-top: 5px; gap: 6px; }
@@ -248,8 +185,8 @@
   height: 62px;
   margin: 5px auto 15px;
   border-radius: 50%;
-  background: #31cf95;
-  color: #0b2118;
+  background: var(--color-landing-accent);
+  color: var(--color-landing-action);
 }
 .check svg { width: 30px; height: 30px; }
 
@@ -260,33 +197,13 @@
   .quoteTable thead th:nth-child(4) { width: 23%; }
 }
 
-@media (max-width: 1100px) {
-  .shell { grid-template-columns: 185px minmax(0, 1fr); }
-}
-
-@media (max-width: 880px) {
-  .shell { display: block; }
-  .sidebar { position: static; height: auto; flex-direction: row; align-items: center; gap: 10px; padding: 7px 15px; border-width: 0 0 1px; }
-  .brand { margin: 0 auto 0 0; }
-  .nav { display: flex; gap: 4px; }
-  .nav :where(a, button) { min-height: 40px; }
-  .sidebarFooter { display: none; }
-}
-
 @media (max-width: 620px) {
-  .topbar, .marketStrip { padding-inline: 16px; }
-  .topbar { min-height: 57px; gap: 5px; }
-  .main { padding: 18px 16px 32px; }
-  .assetHeading { margin-bottom: 19px; }
-  .detailGrid { display: flex; flex-direction: column; gap: 13px; }
-  .detailGrid > * { width: 100%; }
-  .buyPanel { order: -1; }
   .quoteTable thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .quoteTable :where(tbody, tr, td, th) { display: block; }
   .quoteTable tbody tr { padding: 9px 10px; border-bottom: 1px solid var(--line); }
   .quoteTable th, .quoteTable td { padding: 5px 0; border: 0; }
   .quoteTable .numeric { display: flex; gap: 7px; justify-content: space-between; align-items: baseline; }
-  .quoteTable .numeric::before { content: attr(data-label); color: var(--muted); font: 400 13px/1.5 "Instrument Sans", system-ui, sans-serif; }
+  .quoteTable .numeric::before { content: attr(data-label); color: var(--muted); font: inherit; font-size: 13px; }
   .quoteTable td:last-child { text-align: left; }
   .quoteFooter { align-items: stretch; flex-direction: column; }
   .issuerTerms, .issuerTerms :where(thead, tbody) { display: block; }
@@ -296,11 +213,5 @@
   .issuerTerms tbody th { grid-column: 1 / -1; padding-bottom: 0; }
   .issuerTerms .fees .lines > div { grid-template-columns: 1fr; gap: 2px; }
   .issuerTerms .fees .lines dd { text-align: left; }
-  .assetLink { min-height: 36px; padding-inline: 7px; }
   .dialog { padding: 17px; }
-}
-
-@media (max-width: 360px) {
-  .nav svg, .assetLink svg { display: none; }
-  .marketStrip { gap: 8px; font-size: 12px; }
 }

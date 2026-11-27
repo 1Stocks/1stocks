@@ -2,6 +2,7 @@
 
 import { PrivyProvider, useLoginWithOAuth, usePrivy, type PrivyClientConfig, type User } from "@privy-io/react-auth";
 import { useCreateWallet, useWallets } from "@privy-io/react-auth/solana";
+import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { type WalletSession, WalletSessionContext } from "./session";
 import { embeddedSolanaAddress, isPrivyAppIdValid } from "./session-policy";
@@ -56,8 +57,13 @@ function useReadinessTimeout(ready: boolean) {
 }
 
 function SessionBridge({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const { ready, authenticated, user, logout } = usePrivy();
-  const { state: oauth, initOAuth } = useLoginWithOAuth();
+  const { state: oauth, initOAuth } = useLoginWithOAuth({
+    onComplete: () => {
+      if (window.location.pathname === "/") router.replace("/beranda");
+    },
+  });
   const [loginAction, setLoginAction] = useState<"idle" | "pending" | "failed">("idle");
   const sessionReady = ready && (!authenticated || user !== null);
   const timedOut = useReadinessTimeout(sessionReady);
@@ -137,6 +143,7 @@ function AuthenticatedSession({ user, logout, children }: {
   const session: WalletSession = {
     status: "signed-in",
     userId: user.id,
+    google: user.google ? { name: user.google.name, email: user.google.email } : undefined,
     logout: endSession,
     pending: logoutAction === "pending",
     failed: logoutAction === "failed",
