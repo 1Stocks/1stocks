@@ -22,3 +22,10 @@ keypairs/
 
 # OS files
 .DS_Store
+
+# Undersstand Anything Skill
+.ua/
+.agents/
+agent/
+.claude/
+skills-lock.json
