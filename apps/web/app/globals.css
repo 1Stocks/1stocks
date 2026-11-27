@@ -49,6 +49,20 @@
   --warning-foreground: #1a0d03;
   --info-foreground: #0a0908;
 
+  /* Alert / note surfaces (Figcraft Inputs & Notes) */
+  --alert-success: #0d1a14;
+  --alert-success-border: #1d4a37;
+  --alert-success-foreground: #bfeedb;
+  --alert-warning: #1c160a;
+  --alert-warning-border: #4d3a14;
+  --alert-warning-foreground: #f3d9a8;
+  --alert-destructive: #1d0e0d;
+  --alert-destructive-border: #55211f;
+  --alert-destructive-foreground: #f6c6c3;
+  --alert-info: #0d121a;
+  --alert-info-border: #1f3555;
+  --alert-info-foreground: #c3d9f6;
+
   /* Charts */
   --chart-1: #ff7a1a;
   --chart-2: #2bd08f;
@@ -106,6 +120,18 @@
   --warning: #f3b544;
   --warning-foreground: #1a0d03;
   --info-foreground: #0a0908;
+  --alert-success: #0d1a14;
+  --alert-success-border: #1d4a37;
+  --alert-success-foreground: #bfeedb;
+  --alert-warning: #1c160a;
+  --alert-warning-border: #4d3a14;
+  --alert-warning-foreground: #f3d9a8;
+  --alert-destructive: #1d0e0d;
+  --alert-destructive-border: #55211f;
+  --alert-destructive-foreground: #f6c6c3;
+  --alert-info: #0d121a;
+  --alert-info-border: #1f3555;
+  --alert-info-foreground: #c3d9f6;
   --chart-1: #ff7a1a;
   --chart-2: #2bd08f;
   --chart-3: #6fa8ff;
@@ -172,6 +198,19 @@
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-info-foreground: var(--info-foreground);
+
+  --color-alert-success: var(--alert-success);
+  --color-alert-success-border: var(--alert-success-border);
+  --color-alert-success-foreground: var(--alert-success-foreground);
+  --color-alert-warning: var(--alert-warning);
+  --color-alert-warning-border: var(--alert-warning-border);
+  --color-alert-warning-foreground: var(--alert-warning-foreground);
+  --color-alert-destructive: var(--alert-destructive);
+  --color-alert-destructive-border: var(--alert-destructive-border);
+  --color-alert-destructive-foreground: var(--alert-destructive-foreground);
+  --color-alert-info: var(--alert-info);
+  --color-alert-info-border: var(--alert-info-border);
+  --color-alert-info-foreground: var(--alert-info-foreground);
 
   /* Fonts — next/font injects --font-inter / --font-sora / --font-jetbrains */
   --font-sans: var(--font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
