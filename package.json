@@ -1,0 +1,30 @@
+{
+  "name": "1stocks-mvp",
+  "private": true,
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "next dev apps/web",
+    "start": "next start apps/web",
+    "lint": "eslint apps packages",
+    "test": "tsx --tsconfig tsconfig.base.json --test apps/api/test/*.test.ts packages/shared/test/*.test.ts",
+    "typecheck": "tsc -p apps/api && tsc -p packages/shared && next typegen apps/web && tsc -p apps/web",
+    "build": "npm run typecheck && next build apps/web",
+    "check": "npm run lint && npm test && npm run build",
+    "verify": "npm ci && npm run check"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "~19.2.0",
+    "react-dom": "~19.2.0",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.4.6",
+    "tsx": "^4.21.0",
+    "typescript": "~5.9.3"
+  }
+}

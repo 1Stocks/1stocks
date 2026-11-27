@@ -1,16 +1,21 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "1Stocks",
-  description: "Frontend awal 1Stocks untuk pengembangan lokal.",
+  title: "1Stocks | Beli token saham pakai rupiah",
+  description: "Coba estimasi pembelian token saham Apple dari rupiah di 1Stocks.",
+  icons: { icon: { url: "/brand/favicon.svg", type: "image/svg+xml" } },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        {children}
+        <Script src="/estimate.js" strategy="afterInteractive" type="module" />
+      </body>
     </html>
   );
 }
