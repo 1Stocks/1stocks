@@ -1,0 +1,5 @@
+{
+  "DEMO-AAPL-1STOCKS": { "underlying": "AAPL", "decimals": 2 },
+  "DEMO-TSLA-1STOCKS": { "underlying": "TSLA", "decimals": 2 },
+  "DEMO-NVDA-1STOCKS": { "underlying": "NVDA", "decimals": 2 }
+}

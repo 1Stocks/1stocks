@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { appleIssuerProfiles } from "@1stocks/shared";
 
 type Analysis = {
@@ -15,6 +16,9 @@ const sources: Record<string, string> = {
   "quote-AAPLon": "Kuotasi LI.FI AAPLon",
   "profile-AAPLx": "Dokumen xStocks",
   "profile-AAPLon": "Dokumen Ondo",
+  "catalog-xstocks": "Katalog xStocks",
+  "catalog-ondo": "Katalog Ondo",
+  "catalog-bstocks": "Katalog bStocks",
   eligibility: "Pemeriksaan deterministik",
 };
 const documents: Record<string, string> = {
@@ -50,9 +54,15 @@ export function IssuerAnalysis({ amount }: { amount: string }) {
               <li key={index}>
                 {point.text}
                 <span className="mt-1 block text-xs text-landing-muted">
-                  {point.evidence.map((id, i) => <span key={`${id}-${i}`}>{i > 0 && " · "}{documents[id]
-                    ? <a href={documents[id]} target="_blank" rel="noreferrer" className="text-landing-accent underline!">{sources[id]}</a>
-                    : sources[id]}</span>)}
+                  {point.evidence.map((id, i) => (
+                    <span key={`${id}-${i}`}>{i > 0 && " · "}
+                      {documents[id] ? (
+                        <a href={documents[id]} target="_blank" rel="noreferrer" className="text-landing-accent underline!">{sources[id]}</a>
+                      ) : id.startsWith("catalog-") && sources[id] ? (
+                        <Link href="/saham/us0378331005" className="text-landing-accent underline!">{sources[id]}</Link>
+                      ) : sources[id]}
+                    </span>
+                  ))}
                 </span>
               </li>
             ))}

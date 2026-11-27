@@ -39,3 +39,21 @@ test("parses structured output and handles provider rate limits and invalid evid
   assert.equal((await explainIssuers(data, "test", "test", model("quote-AAPLon"))).status, "INVALID_MODEL_OUTPUT");
   assert.equal((await explainIssuers(data, "test", "test", async () => new Response(null, { status: 429 }))).status, "RATE_LIMITED");
 });
+
+test("allows citations to official catalog entries with their network restrictions", async () => {
+  const data = sample(new Date(Date.now() + 60_000).toISOString());
+  const request: typeof fetch = async (_url, options) => {
+    const payload = JSON.parse(String(options?.body));
+    const catalog = JSON.parse(payload.input).officialCatalog;
+    const bstocks = catalog.find((item: { id: string }) => item.id === "catalog-bstocks");
+    assert.equal(bstocks.symbol, "AAPLB");
+    assert.ok(["unsupported-chain", "stale"].includes(bstocks.status));
+    assert.equal(bstocks.deployments[0].chain, "eip155:56");
+    assert.ok(payload.text.format.schema.properties.points.items.properties.evidence.items.enum.includes(bstocks.id));
+    return Response.json({ status: "completed", output: [{ type: "message", content: [{
+      type: "output_text",
+      text: JSON.stringify({ points: [{ text: "AAPLB tersedia di jaringan BNB.", evidence: [bstocks.id] }] }),
+    }] }] });
+  };
+  assert.equal((await explainIssuers(data, "test", "test", request)).status, "OK");
+});

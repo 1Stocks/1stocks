@@ -44,7 +44,7 @@ test("the application routes expose market search and real empty states", async 
   const routes = [
     ["/beranda", /Belum ada aset tercatat/],
     ["/pasar?q=aapl", /Apple.*AAPL/],
-    ["/pasar?q=Netflix", /Tidak ada hasil untuk/],
+    ["/pasar?q=not-an-asset-of-1stocks", /Tidak ada hasil untuk/],
     ["/portofolio", /Belum ada aset saham tercatat/],
     ["/riwayat?jenis=beli", /Belum ada transaksi beli/],
     ["/pengaturan", /Verifikasi identitas.*belum tersedia/],

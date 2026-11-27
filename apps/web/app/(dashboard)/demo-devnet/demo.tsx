@@ -1,5 +1,6 @@
 "use client";
 
+import type { DemoToken } from "../../../../../packages/asset-catalog/registry/demo";
 import { useSignTransaction, useWallets } from "@privy-io/react-auth/solana";
 import { isAddress, type Address, type Signature } from "@solana/kit";
 import { useRef, useState } from "react";
@@ -9,18 +10,34 @@ import { useWalletSession } from "../../wallet/session";
 import { panel, primaryButton, secondaryButton } from "../_components/styles";
 import { checkTransfer, confirmedTokenBalance, DemoTransferError, prepareTransfer, signedTransferSignature, submitTransfer } from "./transfer";
 
-export function DevnetDemo({ mint }: { mint: Address | null }) {
+export function DevnetDemo({ mint, tokens }: { mint: Address | null; tokens: DemoToken[] }) {
+  const [selection, setSelection] = useState<Address>();
+  const [changingDisabled, setChangingDisabled] = useState(false);
+  const active = tokens.find(token => token.mint === selection) ?? tokens[0];
+  const selectedMint = active?.mint ?? mint;
   const session = useWalletSession();
-  if (!mint) return <p>Mint token SPL demo belum dikonfigurasi.</p>;
+  if (!selectedMint) return <p>Mint token SPL demo belum dikonfigurasi.</p>;
   if (session.status === "unconfigured") return <p>Masuk melalui Privy diperlukan untuk menandatangani transfer devnet.</p>;
   if (session.status !== "signed-in") return <SignInControl className={primaryButton} />;
   if (session.wallet.status === "loading") return <p role="status">Menyiapkan dompet Solana…</p>;
   if (session.wallet.status === "unavailable") return <button type="button" className={secondaryButton} onClick={session.wallet.retry}>Coba siapkan dompet lagi</button>;
   if (!isAddress(session.wallet.address)) return <p role="alert">Alamat dompet tidak valid.</p>;
-  return <TransferForm key={session.wallet.address} mint={mint} from={session.wallet.address} />;
+  return (
+    <>
+      {tokens.length > 0 && <label className="grid gap-2 text-sm">
+        Token demo devnet
+        <select value={active?.mint} disabled={changingDisabled} onChange={event => {
+          if (isAddress(event.target.value)) setSelection(event.target.value);
+        }} className="rounded-lg border border-solid border-landing-border bg-landing-card p-2">
+          {tokens.map(token => <option key={token.mint} value={token.mint}>{token.symbol}</option>)}
+        </select>
+      </label>}
+      <TransferForm key={`${session.wallet.address}:${selectedMint}`} mint={selectedMint} from={session.wallet.address} onLock={setChangingDisabled} />
+    </>
+  );
 }
 
-function TransferForm({ mint, from }: { mint: Address; from: Address }) {
+function TransferForm({ mint, from, onLock }: { mint: Address; from: Address; onLock: (locked: boolean) => void }) {
   const { wallets } = useWallets();
   const { signTransaction } = useSignTransaction();
   const wallet = wallets.find(item => item.address === from);
@@ -40,6 +57,7 @@ function TransferForm({ mint, from }: { mint: Address; from: Address }) {
     try {
       const status = await checkTransfer(sig);
       setPhase(status);
+      onLock(status === "pending");
       if (status === "confirmed") {
         const balance = await confirmedTokenBalance(from, mint).catch(() => null);
         if (balance) setAfterBalance(formatAtomic(balance.amount, balance.decimals));
@@ -50,6 +68,7 @@ function TransferForm({ mint, from }: { mint: Address; from: Address }) {
   async function transfer() {
     if (!wallet || !agreed || locked || running.current) return;
     running.current = true;
+    onLock(true);
     setPhase("signing");
     setError("");
     setSignature(undefined);
@@ -68,6 +87,7 @@ function TransferForm({ mint, from }: { mint: Address; from: Address }) {
         setError("Pengiriman belum terverifikasi. Periksa status sebelum mencoba transfer lain.");
       } else {
         setPhase("idle");
+        onLock(false);
         setError(problem instanceof DemoTransferError ? problem.message : "Transfer belum dikirim. Periksa jaringan, SOL devnet, atau konfirmasi tanda tangan.");
       }
     } finally {
