@@ -1,5 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
 import { apple } from "@1stocks/shared";
+import { LegacyCalculator } from "./legacy-calculator";
 
 const quickAmounts = [
   [100000, "Rp100.000"],
@@ -38,16 +40,16 @@ export default function Home() {
 
               <div className="asset-list" id="saham">
                 <h2>Saham yang bisa dicoba</h2>
-                <a href="#nominal" className="asset-option" id="select-apple">
+                <Link href="/saham/apple" className="asset-option">
                   <span className="asset-name"><strong>{apple.name}</strong><span>{apple.ticker}</span></span>
-                  <span className="asset-action">Pilih Apple</span>
-                </a>
+                  <span className="asset-action">Lihat estimasi Apple</span>
+                </Link>
               </div>
             </div>
 
             <div className="calculator" id="estimasi">
               <header className="order-header">
-                <h2 id="order-title">Estimasi Apple</h2>
+                <h2 id="order-title">Contoh kalkulator Apple</h2>
                 <p>Harga contoh Rp4.000.000 per token</p>
               </header>
 
@@ -130,6 +132,7 @@ export default function Home() {
           <a href="#awal">Kembali ke atas</a>
         </div>
       </footer>
+      <LegacyCalculator />
     </div>
   );
 }

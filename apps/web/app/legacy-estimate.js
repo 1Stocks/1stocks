@@ -1,4 +1,8 @@
-function setupEstimator(form) {
+const initializedForms = new WeakSet();
+
+export function setupEstimator(form) {
+  if (initializedForms.has(form)) return;
+  initializedForms.add(form);
   const input = form.querySelector("#nominal");
   const help = form.querySelector("#amount-help");
   const tokenOutput = form.querySelector("#estimate-tokens");
@@ -101,11 +105,6 @@ function setupEstimator(form) {
   }
 
   review.querySelector("#edit-order").addEventListener("click", focusInput);
-  document.querySelector("#select-apple").addEventListener("click", event => {
-    event.preventDefault();
-    focusInput();
-  });
-
   review.querySelector("#finish-preview").addEventListener("click", () => {
     portfolioState.textContent = "Pratinjau selesai";
     portfolioDetail.textContent = "Pratinjau ini tidak menarik rupiah atau mengirim token.";
@@ -116,6 +115,3 @@ function setupEstimator(form) {
 
   if (input.value !== input.defaultValue) update();
 }
-
-const estimateForm = document.querySelector("#estimate-form");
-if (estimateForm) setupEstimator(estimateForm);

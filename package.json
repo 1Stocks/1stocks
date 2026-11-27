@@ -6,7 +6,7 @@
     "dev": "next dev apps/web",
     "start": "next start apps/web",
     "lint": "eslint apps packages",
-    "test": "tsx --tsconfig tsconfig.base.json --test apps/api/test/*.test.ts packages/shared/test/*.test.ts",
+    "test": "tsx --tsconfig tsconfig.base.json --test apps/api/test/*.test.ts apps/web/test/*.test.ts packages/shared/test/*.test.ts",
     "typecheck": "tsc -p apps/api && tsc -p packages/shared && next typegen apps/web && tsc -p apps/web",
     "build": "npm run typecheck && next build apps/web",
     "check": "npm run lint && npm test && npm run build",

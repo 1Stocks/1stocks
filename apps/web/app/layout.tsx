@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +13,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="id">
       <body>
         {children}
-        <Script src="/estimate.js" strategy="afterInteractive" type="module" />
       </body>
     </html>
   );
