@@ -1,0 +1,8 @@
+{
+  "name": "@1stocks/solana-tooling",
+  "private": true,
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}
