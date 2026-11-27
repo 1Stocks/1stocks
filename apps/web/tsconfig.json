@@ -5,7 +5,13 @@
     "jsx": "react-jsx",
     "isolatedModules": true,
     "allowJs": true,
-    "plugins": [{ "name": "next" }]
+    "plugins": [{ "name": "next" }],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@1stocks/api": ["../api/src/index.ts"],
+      "@1stocks/shared": ["../../packages/shared/src/index.ts"]
+    }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
   "exclude": ["node_modules"]

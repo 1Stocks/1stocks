@@ -22,3 +22,10 @@ keypairs/
 
 # OS files
 .DS_Store
+
+# Undersstand Anything Skill
+.ua/
+
+# Agent-specific skill mirrors (canonical skills live in .agents/)
+agent/
+.claude/
