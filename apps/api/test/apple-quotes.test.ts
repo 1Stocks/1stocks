@@ -61,6 +61,8 @@ test("quotes both Apple tokens for the same input, with prices and fees but with
   const response = await service.getAppleQuotes(amount);
   assert.equal(response.source, "LI.FI");
   assert.equal(response.mode, "quote-only");
+  assert.deepEqual(response.selection.decision, { status: "unavailable", reason: "MISSING_COMPARISON_DATA" });
+  assert.deepEqual(response.selection.candidates[2], { token: "AAPLB", status: "excluded", reason: "UNSUPPORTED_SOLANA" });
   assert.deepEqual(response.quotes.map((row) => row.token), ["AAPLx", "AAPLon"]);
   for (const row of response.quotes) {
     assert.equal(row.status, "quoted");

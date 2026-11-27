@@ -1,7 +1,8 @@
 import {
-  apple, SOLANA_MAINNET_LIFI_CHAIN_ID, tokenRegistry,
+  SOLANA_MAINNET_LIFI_CHAIN_ID, tokenRegistry,
   type AppleBuyToken, type AppleQuoteResult, type AppleQuotesResponse, type QuoteErrorCode, type QuoteFee,
 } from "@1stocks/shared";
+import { selectAppleIssuer, type AppleIssuerEvidence } from "./issuer-selection";
 
 const QUOTE_URL = "https://li.quest/v1/quote";
 const IDRX = tokenRegistry.IDRX.solanaMainnet.mint;
@@ -160,13 +161,14 @@ export function createAppleQuoteService({ fromAddress, apiKey, fetcher = fetch, 
     return pending;
   }
 
-  async function getAppleQuotes(amount: string): Promise<AppleQuotesResponse> {
+  async function getAppleQuotes(amount: string, evidence?: AppleIssuerEvidence): Promise<AppleQuotesResponse> {
+    const evaluation = await selectAppleIssuer(amount, (token) => getQuote(token, amount), now, evidence);
     return {
       source: "LI.FI",
       cluster: "solana-mainnet",
       mode: "quote-only",
       input: { symbol: "IDRX", mint: IDRX.address, decimals: IDRX.decimals, amountAtomic: amount },
-      quotes: await Promise.all(apple.buyTokens.map((token) => getQuote(token, amount))),
+      ...evaluation,
     };
   }
 

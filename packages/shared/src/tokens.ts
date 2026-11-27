@@ -2,6 +2,7 @@ export const SOLANA_MAINNET_LIFI_CHAIN_ID = 1151111081099710;
 
 export type TokenSymbol = "IDRX" | "USDC" | "AAPLx" | "AAPLon" | "AAPLB";
 export type AppleBuyToken = "AAPLx" | "AAPLon";
+export type AppleIssuerToken = AppleBuyToken | "AAPLB";
 
 type TokenMint = {
   address: string;
@@ -58,7 +59,7 @@ export const tokenRegistry = {
   },
   AAPLon: {
     symbol: "AAPLon",
-    issuer: "Ondo Global Markets",
+    issuer: "Ondo Global Markets (BVI) Limited",
     canBuy: true,
     solanaMainnet: verified(
       "123mYEnRLM2LLYsJW3K6oyYh8uP1fngj732iG638ondo", 9,
@@ -79,4 +80,5 @@ export const apple = {
   name: "Apple",
   ticker: "AAPL",
   buyTokens: ["AAPLx", "AAPLon"] as const satisfies readonly AppleBuyToken[],
+  issuerTokens: ["AAPLx", "AAPLon", "AAPLB"] as const satisfies readonly AppleIssuerToken[],
 } as const;
