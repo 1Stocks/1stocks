@@ -25,7 +25,7 @@ keypairs/
 
 # Undersstand Anything Skill
 .ua/
-.agents/
+
+# Agent-specific skill mirrors (canonical skills live in .agents/)
 agent/
 .claude/
-skills-lock.json
