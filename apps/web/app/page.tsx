@@ -58,7 +58,7 @@ export default function Home() {
             OneStocks
           </Link>
           <nav aria-label="Navigasi utama" className="col-span-2 col-start-1 row-start-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm/5 font-medium lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:gap-7">
-            <Link href="/saham/apple" className="hover:text-landing-accent">Pasar</Link>
+            <Link href="/pasar" className="hover:text-landing-accent">Pasar</Link>
             <a href="#cara-kerja" className="hover:text-landing-accent">Cara kerja</a>
             <a href="#disclaimer" className="text-landing-muted hover:text-landing-accent">Disclaimer</a>
           </nav>

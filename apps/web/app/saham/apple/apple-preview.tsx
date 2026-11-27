@@ -8,7 +8,7 @@ import {
   type AppleQuotesResponse, type QuoteAmount, type QuoteFee,
 } from "@1stocks/shared";
 import { formatAtomic, isCurrentQuote, quoteErrors, readRupiah, type QuotedApple } from "./quote-display";
-import { AccountMenu, SignInControl } from "../../wallet/account";
+import { SignInControl } from "../../wallet/account";
 import { useWalletSession } from "../../wallet/session";
 import { canPreviewApple } from "../../wallet/session-policy";
 import styles from "./preview.module.css";
@@ -301,249 +301,225 @@ function ApplePurchase({ canQuote }: { canQuote: boolean }) {
   }
 
   return (
-    <div className={styles.shell}>
-      <aside className={styles.sidebar}>
-        <Link className={styles.brand} href="/" aria-label="1Stocks, beranda">
-          <Image src="/brand/logo-dark.svg" alt="" width={138} height={40} unoptimized priority />
-        </Link>
-        <nav className={styles.nav} aria-label="Navigasi aplikasi">
-          <Link href="/"><HomeIcon />Beranda</Link>
-          <button type="button" aria-current="page" onClick={backToDetail}><MarketIcon />Pasar</button>
-        </nav>
-        <div className={styles.sidebarFooter}>Pratinjau pembelian</div>
-      </aside>
-
-      <div className={styles.workspace}>
-        <header className={styles.topbar}>
-          <button type="button" className={styles.assetLink} onClick={backToDetail}>
-            <MarketIcon />
-            <span>Pasar</span><span aria-hidden="true">/</span><strong>Apple</strong>
-          </button>
-          <AccountMenu buttonClass={styles.secondary} />
+    <div className={styles.main} aria-busy={busy}>
+    {step.name === "detail" && (
+      <div className={styles.detailGrid}>
+        <header className={styles.assetHeading}>
+          <Link href="/pasar" className="mb-2 inline-block text-sm text-landing-muted hover:text-landing-accent">← Pasar</Link>
+          <h1>Apple Inc.</h1>
+          <p>{apple.ticker} · {apple.buyTokens.length} produk token saham</p>
         </header>
-        <div className={styles.marketStrip}>
-          <strong>{apple.ticker}</strong>
-          <span>Token saham Apple</span>
-        </div>
 
-        <main className={styles.main} aria-busy={busy}>
-          {step.name === "detail" && (
-            <>
-              <header className={styles.assetHeading}>
-                <span className={styles.assetMark} aria-hidden="true">A</span>
-                <div>
-                  <h1>Apple Inc.</h1>
-                  <p>{apple.ticker} · {apple.buyTokens.length} produk token saham</p>
-                </div>
-              </header>
-
-              <div className={styles.detailGrid}>
-                <div className={styles.assetPanels}>
-                  <section className={`${styles.panel} ${styles.marketPanel}`} aria-labelledby="apple-market">
-                    <h2 id="apple-market">Ringkasan Apple</h2>
-                    <dl className={styles.lines}>
-                      <div><dt>Saham acuan</dt><dd>Apple Inc. (AAPL)</dd></div>
-                      <div><dt>Harga saham</dt><dd>Belum tersedia</dd></div>
-                      <div><dt>Produk yang dievaluasi</dt><dd>xStocks dan Ondo</dd></div>
-                    </dl>
-                    <p>1Stocks memeriksa penawaran tiap penerbit untuk nominal yang kamu masukkan.</p>
-                  </section>
-                  <section className={styles.panel} aria-labelledby="apple-terms">
-                    <h2 id="apple-terms">Tentang token Apple</h2>
-                    <p>Ketentuan hukum, hak pemegang, dan risiko mengikuti dokumen masing-masing penerbit.</p>
-                    <div className={styles.termsLinks}>
-                      {apple.buyTokens.map((token) => <a key={token} href={appleIssuerProfiles[token].documentUrl} target="_blank" rel="noreferrer">{token} <span aria-hidden="true">↗</span></a>)}
-                    </div>
-                  </section>
-                </div>
-
-                <div className={`${styles.assetPanels} ${styles.buyPanel}`}>
-                {!canQuote && (
-                  <section className={`${styles.panel} ${styles.buy}`} aria-label="Akses pratinjau Apple">
-                    <h2>Beli Apple</h2>
-                    <SignInControl className={styles.primary} />
-                  </section>
-                )}
-                {canQuote && <form className={`${styles.panel} ${styles.buy}`} onSubmit={submitAmount} noValidate>
-                  <h2>Beli Apple</h2>
-                  <label htmlFor="apple-amount">Jumlah (rupiah)</label>
-                  <div className={styles.amountField} data-invalid={invalid || undefined}>
-                    <span aria-hidden="true">Rp</span>
-                    <input
-                      id="apple-amount" ref={input} inputMode="numeric" autoComplete="off" maxLength={15}
-                      placeholder="0" value={amount} onChange={(event) => editAmount(event.target.value)}
-                      onBlur={() => { if (parsed) setAmount(formatAtomic(parsed, 0)); }}
-                      aria-invalid={invalid} aria-describedby="amount-help"
-                    />
-                  </div>
-                  <div className={styles.presets} role="group" aria-label="Pilihan nominal">
-                    {presets.map(({ value, label }) => (
-                      <button type="button" key={value} aria-label={rupiah(value)} aria-pressed={parsed === value} onClick={() => editAmount(formatAtomic(value, 0))}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                  {invalid && <p className={styles.error} role="alert">Masukkan nominal rupiah bulat mulai Rp1, hingga 12 digit.</p>}
-                  <p className={styles.amountHelp} id="amount-help">Kamu bisa melihat penawaran tanpa menggunakan saldo rupiah.</p>
-                  {apiError && <p className={styles.error} role="alert">{apiError}</p>}
-                  <button className={offer ? styles.secondary : styles.primary} type="submit" disabled={busy}>
-                    {busy ? "Memeriksa penawaran penerbit…" : offer ? "Perbarui estimasi" : "Lihat estimasi"}
-                  </button>
-                  {busy && <span className="sr-only" role="status">Meminta penawaran token Apple.</span>}
-                </form>}
-                {offer && offerSummary && (
-                  <section className={`${styles.panel} ${styles.offer}`} aria-label="Hasil evaluasi penerbit" aria-live="polite">
-                    <h2>{offerSummary.title}</h2>
-                    <p>{offerSummary.detail}</p>
-                    {offerSummary.quote && (
-                      <dl className={styles.lines}>
-                        <div><dt>Penerbit</dt><dd>{tokenRegistry[offerSummary.quote.token].issuer}</dd></div>
-                        <div><dt>Estimasi diterima</dt><dd className={styles.figure}>{quantity(offerSummary.quote.output)}</dd></div>
-                      </dl>
-                    )}
-                    {offerSummary.quote && <button className={styles.primary} type="button" disabled={busy} onClick={() => reviewOffer(offer)}>Tinjau estimasi</button>}
-                    <button className={offerSummary.quote ? styles.secondary : styles.primary} type="button" disabled={busy} onClick={() => {
-                      setApiError("");
-                      setStep({ name: "compare", set: offer, selected: offerSummary.quote ?? null });
-                    }}>Lihat perbandingan penerbit</button>
-                  </section>
-                )}
-                </div>
+          <div className={`${styles.assetPanels} ${styles.stockPanels}`}>
+            <figure className="m-0 grid gap-3 border-b border-solid border-landing-border pb-5">
+              <Image src="/app-ui/apple-chart.svg" alt="" width={820} height={260} className="block h-auto max-w-full" unoptimized />
+              <figcaption className="text-xs text-landing-muted">Ilustrasi grafik. Harga referensi belum tersedia.</figcaption>
+            </figure>
+            <section className="grid gap-3 border-b border-solid border-landing-border pb-5" aria-labelledby="apple-terms">
+              <h2 id="apple-terms">Tentang token Apple</h2>
+              <p className="text-landing-muted">1Stocks memeriksa penawaran xStocks dan Ondo untuk nominal yang kamu masukkan. Ketentuan hukum, hak pemegang, dan risiko mengikuti dokumen masing-masing penerbit.</p>
+              <div className={styles.termsLinks}>
+                {apple.buyTokens.map((token) => <a key={token} href={appleIssuerProfiles[token].documentUrl} target="_blank" rel="noreferrer">{token} <span aria-hidden="true">↗</span></a>)}
               </div>
-            </>
-          )}
-
-          {comparison && comparisonSummary && (
-              <section className={styles.compare}>
-                <button type="button" className={styles.back} onClick={backToDetail}>← Ubah nominal</button>
-                <h1 tabIndex={-1} ref={heading}>Bandingkan token Apple</h1>
-                <p className={styles.intro}>Penawaran seluruh penerbit memakai nominal yang sama. Ketersediaan penawaran belum memverifikasi kelayakan pengguna.</p>
-                <div className={`${styles.panel} ${styles.comparisonPanel}`}>
-                  <div className={styles.quoteToolbar}>
-                    <div><span>Nominal</span><strong>{rupiah(comparison.set.amount)}</strong></div>
-                    <button className={styles.secondary} type="button" onClick={() => void loadQuotes(comparison.set.amount, "compare")} disabled={busy}>{busy ? "Memperbarui…" : "Perbarui estimasi"}</button>
-                  </div>
-                  <div className={styles.decision}>
-                    <strong>{comparisonSummary.title}</strong>
-                    <p>{comparisonSummary.detail}</p>
-                  </div>
-                  {apiError && <p className={styles.error} role="alert">{apiError}</p>}
-                  <div className={styles.tableWrap}>
-                    <table className={styles.quoteTable}>
-                      <thead>
-                        <tr>
-                          <th scope="col">Token dan penerbit</th>
-                          <th scope="col">Estimasi diterima</th>
-                          <th scope="col">Minimum diterima</th>
-                          <th scope="col">Ketersediaan</th>
-                          <th scope="col"><span className="sr-only">Pilih token</span></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {comparison.set.data.selection.candidates.map((candidate) => {
-                          const quote = candidate.status === "quotable" ? findQuote(comparison.set, candidate.quoteId, candidate.token) : undefined;
-                          const current = quote && isCurrentQuote(quote, quoteNow);
-                          const selectedHere = quote && comparison.selected?.token === quote.token;
-                          return (
-                            <tr key={candidate.token} data-selected={selectedHere || undefined}>
-                              <th scope="row"><strong>{candidate.token}</strong><small>{tokenRegistry[candidate.token].issuer}</small></th>
-                              {quote && candidate.status === "quotable" ? (
-                                <>
-                                  <td className={styles.numeric} data-label="Estimasi diterima">{quantity(quote.output)}</td>
-                                  <td className={styles.numeric} data-label="Minimum diterima">{minimum(quote)}</td>
-                                  <td>
-                                    <span className={current ? styles.available : styles.expired}>{current ? `Berlaku hingga ${formatTime(quote.expiresAt)}` : "Estimasi kedaluwarsa"}</span>
-                                    <small>Selisih estimasi ke minimum {formatAtomic(String(candidate.receiveBufferBps), 2)}%</small>
-                                  </td>
-                                  <td><button className={styles.secondary} type="button" disabled={!current || busy} aria-pressed={selectedHere} aria-label={`Pilih ${quote.token}`} onClick={() => {
-                                    if (validForReview(quote, Date.now())) setStep({ ...comparison, selected: quote });
-                                  }}>{selectedHere ? "Dipilih" : "Pilih"}</button></td>
-                                </>
-                              ) : <td className={styles.unavailable} colSpan={4}>{candidate.status === "excluded" ? explainExclusion(candidate.reason) : "Estimasi belum tersedia."}</td>}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className={styles.quoteFooter}>
-                    <p>Estimasi dan minimum ditampilkan dalam unit masing-masing token. Rute yang tersedia tidak mengukur kedalaman likuiditas.</p>
-                    <button className={styles.primary} type="button" disabled={!comparison.selected || !isCurrentQuote(comparison.selected, quoteNow) || busy} onClick={() => {
-                      if (comparison.selected && validForReview(comparison.selected, Date.now())) {
-                        setStep({ name: "review", review: { set: comparison.set, quote: comparison.selected } });
-                      }
-                    }}>Tinjau estimasi</button>
-                  </div>
-                </div>
-                <IssuerTerms set={comparison.set} />
-              </section>
-          )}
-
-          {review && (
-              <section className={`${styles.panel} ${styles.dialog}`}>
-                <button type="button" className={styles.back} disabled={busy} onClick={() => setStep({ name: "compare", set: review.set, selected: review.quote })}>← Pilih token</button>
-                <h1 tabIndex={-1} ref={heading}>Tinjau estimasi Apple</h1>
-                <p>Periksa produk, jumlah token, dan biaya sebelum menyelesaikan pratinjau.</p>
-                <dl className={styles.lines}>
-                  <div><dt>Nominal rupiah</dt><dd className={styles.figure}>{rupiah(review.set.amount)}</dd></div>
-                  <div><dt>Token</dt><dd>{review.quote.token}</dd></div>
-                  <div><dt>Penerbit</dt><dd>{tokenRegistry[review.quote.token].issuer}</dd></div>
-                  <div><dt>Instrumen</dt><dd>{appleIssuerProfiles[review.quote.token].instrument}</dd></div>
-                  <div><dt>Estimasi diterima</dt><dd className={styles.figure}><strong>{quantity(review.quote.output)}</strong></dd></div>
-                  <div><dt>Minimum diterima</dt><dd className={styles.figure}>{minimum(review.quote)}</dd></div>
-                  <div><dt>Status estimasi</dt><dd className={reviewCurrent ? styles.available : styles.expired}>{reviewCurrent ? `Berlaku hingga ${formatTime(review.quote.expiresAt)}` : "Kedaluwarsa"}</dd></div>
-                </dl>
-                <Fees title="Biaya rute" costs={review.quote.feeCosts} />
-                <Fees title="Biaya jaringan" costs={review.quote.gasCosts} />
-                <div className={styles.fees}>
-                  <h3>Risiko dan ketentuan</h3>
-                  <p>{appleIssuerProfiles[review.quote.token].restriction} Harga dapat berubah, dan produk membawa risiko penerbit.</p>
-                  <a href={appleIssuerProfiles[review.quote.token].documentUrl} target="_blank" rel="noreferrer">Dokumen penerbit ↗</a>
-                </div>
-                <details className={styles.resultFees}>
-                  <summary>Rincian sumber estimasi</summary>
-                  <p>Rute {route(review.quote)} · Solana Mainnet. Input {quantity(review.set.data.input)} memakai asumsi 1 IDRX per Rp1 nominal.</p>
-                </details>
-                <p className={styles.orderNote}>Biaya dihitung untuk alamat uji dan bisa berbeda untuk dompetmu. Pratinjau tidak menggunakan saldo atau mengirim token.</p>
-                {!reviewCurrent && <p className={styles.error} role="alert">Estimasi kedaluwarsa. Minta estimasi baru untuk melanjutkan.</p>}
-                {apiError && <p className={styles.error} role="alert">{apiError}</p>}
-                <button className={styles.primary} type="button" disabled={busy} onClick={() => {
-                  if (!reviewCurrent) void loadQuotes(review.set.amount);
-                  else if (validForReview(review.quote, Date.now())) setStep({ name: "result", review });
-                }}>{busy ? "Memperbarui…" : reviewCurrent ? "Selesaikan pratinjau" : "Perbarui estimasi"}</button>
-              </section>
-          )}
-
-          {step.name === "result" && (
-            <section className={`${styles.panel} ${styles.dialog} ${styles.result}`}>
-              <span className={styles.check} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m6 12 4 4 8-8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
-              <h1 tabIndex={-1} ref={heading}>Pratinjau selesai</h1>
-              <p>Ini ringkasan estimasi Apple. Tidak ada transaksi yang dikirim ke Solana.</p>
-              <dl className={styles.lines}>
-                <div><dt>Nominal rupiah</dt><dd className={styles.figure}>{rupiah(step.review.set.amount)}</dd></div>
-                <div><dt>Penerbit</dt><dd>{tokenRegistry[step.review.quote.token].issuer}</dd></div>
-                <div><dt>Estimasi diterima</dt><dd className={styles.figure}>{quantity(step.review.quote.output)}</dd></div>
-                <div><dt>Minimum diterima</dt><dd className={styles.figure}>{minimum(step.review.quote)}</dd></div>
-                <div><dt>Waktu estimasi</dt><dd>{formatTime(step.review.quote.fetchedAt)}</dd></div>
+            </section>
+            <section className="grid gap-3" aria-labelledby="apple-market">
+              <h2 id="apple-market">Ringkasan Apple</h2>
+              <dl className="grid gap-3 text-sm sm:grid-cols-3">
+                <div><dt className="text-landing-muted">Saham acuan</dt><dd>Apple Inc. (AAPL)</dd></div>
+                <div><dt className="text-landing-muted">Produk yang dievaluasi</dt><dd>AAPLx dan AAPLon</dd></div>
+                <div><dt className="text-landing-muted">Produk di luar cakupan</dt><dd>AAPLB</dd></div>
               </dl>
-              <details className={styles.resultFees}>
-                <summary>Rincian biaya estimasi</summary>
-                <Fees title="Biaya rute" costs={step.review.quote.feeCosts} />
-                <Fees title="Biaya jaringan" costs={step.review.quote.gasCosts} />
-              </details>
-              <button className={styles.primary} type="button" onClick={backToDetail}>Kembali ke Apple</button>
+            </section>
+          </div>
+
+          <div className={`${styles.assetPanels} ${styles.buyPanel}`}>
+          {!canQuote && (
+            <section className={`${styles.panel} ${styles.buy}`} aria-label="Akses pratinjau Apple">
+              <TradingHeader />
+              <SignInControl className={styles.primary} />
             </section>
           )}
-        </main>
+          {canQuote && <form className={`${styles.panel} ${styles.buy}`} onSubmit={submitAmount} noValidate>
+            <TradingHeader />
+            <label htmlFor="apple-amount">Jumlah (rupiah)</label>
+            <div className={styles.amountField} data-invalid={invalid || undefined}>
+              <span aria-hidden="true">Rp</span>
+              <input
+                id="apple-amount" ref={input} inputMode="numeric" autoComplete="off" maxLength={15}
+                placeholder="0" value={amount} onChange={(event) => editAmount(event.target.value)}
+                onBlur={() => { if (parsed) setAmount(formatAtomic(parsed, 0)); }}
+                aria-invalid={invalid} aria-describedby="amount-help"
+              />
+            </div>
+            <div className={styles.presets} role="group" aria-label="Pilihan nominal">
+              {presets.map(({ value, label }) => (
+                <button type="button" key={value} aria-label={rupiah(value)} aria-pressed={parsed === value} onClick={() => editAmount(formatAtomic(value, 0))}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            {invalid && <p className={styles.error} role="alert">Masukkan nominal rupiah bulat mulai Rp1, hingga 12 digit.</p>}
+            <p className={styles.amountHelp} id="amount-help">Kamu bisa melihat penawaran tanpa menggunakan saldo rupiah.</p>
+            {apiError && <p className={styles.error} role="alert">{apiError}</p>}
+            <button className={offer ? styles.secondary : styles.primary} type="submit" disabled={busy}>
+              {busy ? "Memeriksa penawaran penerbit…" : offer ? "Perbarui estimasi" : "Lihat estimasi"}
+            </button>
+            {busy && <span className="sr-only" role="status">Meminta penawaran token Apple.</span>}
+          </form>}
+          {offer && offerSummary && (
+            <section className={`${styles.panel} ${styles.offer}`} aria-label="Hasil evaluasi penerbit" aria-live="polite">
+              <h2>{offerSummary.title}</h2>
+              <p>{offerSummary.detail}</p>
+              {offerSummary.quote && (
+                <dl className={styles.lines}>
+                  <div><dt>Penerbit</dt><dd>{tokenRegistry[offerSummary.quote.token].issuer}</dd></div>
+                  <div><dt>Estimasi diterima</dt><dd className={styles.figure}>{quantity(offerSummary.quote.output)}</dd></div>
+                </dl>
+              )}
+              {offerSummary.quote && <button className={styles.primary} type="button" disabled={busy} onClick={() => reviewOffer(offer)}>Tinjau estimasi</button>}
+              <button className={offerSummary.quote ? styles.secondary : styles.primary} type="button" disabled={busy} onClick={() => {
+                setApiError("");
+                setStep({ name: "compare", set: offer, selected: offerSummary.quote ?? null });
+              }}>Lihat perbandingan penerbit</button>
+            </section>
+          )}
+          </div>
       </div>
+    )}
+
+    {comparison && comparisonSummary && (
+        <section className={styles.compare}>
+          <button type="button" className={styles.back} onClick={backToDetail}>← Ubah nominal</button>
+          <h1 tabIndex={-1} ref={heading}>Bandingkan token Apple</h1>
+          <p className={styles.intro}>Penawaran seluruh penerbit memakai nominal yang sama. Ketersediaan penawaran belum memverifikasi kelayakan pengguna.</p>
+          <div className={`${styles.panel} ${styles.comparisonPanel}`}>
+            <div className={styles.quoteToolbar}>
+              <div><span>Nominal</span><strong>{rupiah(comparison.set.amount)}</strong></div>
+              <button className={styles.secondary} type="button" onClick={() => void loadQuotes(comparison.set.amount, "compare")} disabled={busy}>{busy ? "Memperbarui…" : "Perbarui estimasi"}</button>
+            </div>
+            <div className={styles.decision}>
+              <strong>{comparisonSummary.title}</strong>
+              <p>{comparisonSummary.detail}</p>
+            </div>
+            {apiError && <p className={styles.error} role="alert">{apiError}</p>}
+            <div className={styles.tableWrap}>
+              <table className={styles.quoteTable}>
+                <thead>
+                  <tr>
+                    <th scope="col">Token dan penerbit</th>
+                    <th scope="col">Estimasi diterima</th>
+                    <th scope="col">Minimum diterima</th>
+                    <th scope="col">Ketersediaan</th>
+                    <th scope="col"><span className="sr-only">Pilih token</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparison.set.data.selection.candidates.map((candidate) => {
+                    const quote = candidate.status === "quotable" ? findQuote(comparison.set, candidate.quoteId, candidate.token) : undefined;
+                    const current = quote && isCurrentQuote(quote, quoteNow);
+                    const selectedHere = quote && comparison.selected?.token === quote.token;
+                    return (
+                      <tr key={candidate.token} data-selected={selectedHere || undefined}>
+                        <th scope="row"><strong>{candidate.token}</strong><small>{tokenRegistry[candidate.token].issuer}</small></th>
+                        {quote && candidate.status === "quotable" ? (
+                          <>
+                            <td className={styles.numeric} data-label="Estimasi diterima">{quantity(quote.output)}</td>
+                            <td className={styles.numeric} data-label="Minimum diterima">{minimum(quote)}</td>
+                            <td>
+                              <span className={current ? styles.available : styles.expired}>{current ? `Berlaku hingga ${formatTime(quote.expiresAt)}` : "Estimasi kedaluwarsa"}</span>
+                              <small>Selisih estimasi ke minimum {formatAtomic(String(candidate.receiveBufferBps), 2)}%</small>
+                            </td>
+                            <td><button className={styles.secondary} type="button" disabled={!current || busy} aria-pressed={selectedHere} aria-label={`Pilih ${quote.token}`} onClick={() => {
+                              if (validForReview(quote, Date.now())) setStep({ ...comparison, selected: quote });
+                            }}>{selectedHere ? "Dipilih" : "Pilih"}</button></td>
+                          </>
+                        ) : <td className={styles.unavailable} colSpan={4}>{candidate.status === "excluded" ? explainExclusion(candidate.reason) : "Estimasi belum tersedia."}</td>}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className={styles.quoteFooter}>
+              <p>Estimasi dan minimum ditampilkan dalam unit masing-masing token. Rute yang tersedia tidak mengukur kedalaman likuiditas.</p>
+              <button className={styles.primary} type="button" disabled={!comparison.selected || !isCurrentQuote(comparison.selected, quoteNow) || busy} onClick={() => {
+                if (comparison.selected && validForReview(comparison.selected, Date.now())) {
+                  setStep({ name: "review", review: { set: comparison.set, quote: comparison.selected } });
+                }
+              }}>Tinjau estimasi</button>
+            </div>
+          </div>
+          <IssuerTerms set={comparison.set} />
+        </section>
+    )}
+
+    {review && (
+        <section className={`${styles.panel} ${styles.dialog}`}>
+          <button type="button" className={styles.back} disabled={busy} onClick={() => setStep({ name: "compare", set: review.set, selected: review.quote })}>← Pilih token</button>
+          <h1 tabIndex={-1} ref={heading}>Tinjau estimasi Apple</h1>
+          <p>Periksa produk, jumlah token, dan biaya sebelum menyelesaikan pratinjau.</p>
+          <dl className={styles.lines}>
+            <div><dt>Nominal rupiah</dt><dd className={styles.figure}>{rupiah(review.set.amount)}</dd></div>
+            <div><dt>Token</dt><dd>{review.quote.token}</dd></div>
+            <div><dt>Penerbit</dt><dd>{tokenRegistry[review.quote.token].issuer}</dd></div>
+            <div><dt>Instrumen</dt><dd>{appleIssuerProfiles[review.quote.token].instrument}</dd></div>
+            <div><dt>Estimasi diterima</dt><dd className={styles.figure}><strong>{quantity(review.quote.output)}</strong></dd></div>
+            <div><dt>Minimum diterima</dt><dd className={styles.figure}>{minimum(review.quote)}</dd></div>
+            <div><dt>Status estimasi</dt><dd className={reviewCurrent ? styles.available : styles.expired}>{reviewCurrent ? `Berlaku hingga ${formatTime(review.quote.expiresAt)}` : "Kedaluwarsa"}</dd></div>
+          </dl>
+          <Fees title="Biaya rute" costs={review.quote.feeCosts} />
+          <Fees title="Biaya jaringan" costs={review.quote.gasCosts} />
+          <div className={styles.fees}>
+            <h3>Risiko dan ketentuan</h3>
+            <p>{appleIssuerProfiles[review.quote.token].restriction} Harga dapat berubah, dan produk membawa risiko penerbit.</p>
+            <a href={appleIssuerProfiles[review.quote.token].documentUrl} target="_blank" rel="noreferrer">Dokumen penerbit ↗</a>
+          </div>
+          <details className={styles.resultFees}>
+            <summary>Rincian sumber estimasi</summary>
+            <p>Rute {route(review.quote)} · Solana Mainnet. Input {quantity(review.set.data.input)} memakai asumsi 1 IDRX per Rp1 nominal.</p>
+          </details>
+          <p className={styles.orderNote}>Biaya dihitung untuk alamat uji dan bisa berbeda untuk dompetmu. Pratinjau tidak menggunakan saldo atau mengirim token.</p>
+          {!reviewCurrent && <p className={styles.error} role="alert">Estimasi kedaluwarsa. Minta estimasi baru untuk melanjutkan.</p>}
+          {apiError && <p className={styles.error} role="alert">{apiError}</p>}
+          <button className={styles.primary} type="button" disabled={busy} onClick={() => {
+            if (!reviewCurrent) void loadQuotes(review.set.amount);
+            else if (validForReview(review.quote, Date.now())) setStep({ name: "result", review });
+          }}>{busy ? "Memperbarui…" : reviewCurrent ? "Selesaikan pratinjau" : "Perbarui estimasi"}</button>
+        </section>
+    )}
+
+    {step.name === "result" && (
+      <section className={`${styles.panel} ${styles.dialog} ${styles.result}`}>
+        <span className={styles.check} aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m6 12 4 4 8-8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+        <h1 tabIndex={-1} ref={heading}>Pratinjau selesai</h1>
+        <p>Ini ringkasan estimasi Apple. Tidak ada transaksi yang dikirim ke Solana.</p>
+        <dl className={styles.lines}>
+          <div><dt>Nominal rupiah</dt><dd className={styles.figure}>{rupiah(step.review.set.amount)}</dd></div>
+          <div><dt>Penerbit</dt><dd>{tokenRegistry[step.review.quote.token].issuer}</dd></div>
+          <div><dt>Estimasi diterima</dt><dd className={styles.figure}>{quantity(step.review.quote.output)}</dd></div>
+          <div><dt>Minimum diterima</dt><dd className={styles.figure}>{minimum(step.review.quote)}</dd></div>
+          <div><dt>Waktu estimasi</dt><dd>{formatTime(step.review.quote.fetchedAt)}</dd></div>
+        </dl>
+        <details className={styles.resultFees}>
+          <summary>Rincian biaya estimasi</summary>
+          <Fees title="Biaya rute" costs={step.review.quote.feeCosts} />
+          <Fees title="Biaya jaringan" costs={step.review.quote.gasCosts} />
+        </details>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <Link className={`${styles.primary} inline-flex items-center`} href="/beranda">Kembali ke Beranda</Link>
+          <button className={styles.secondary} type="button" onClick={backToDetail}>Kembali ke Apple</button>
+        </div>
+      </section>
+    )}
     </div>
   );
 }
 
-function HomeIcon() {
-  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="m3 11 9-8 9 8M5 10v10h5v-6h4v6h5V10" strokeLinecap="round" strokeLinejoin="round" /></svg>;
-}
-
-function MarketIcon() {
-  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 4v16h16M7 15l4-4 3 2 5-6" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+function TradingHeader() {
+  return (
+    <header className="flex flex-wrap items-center gap-3 border-b border-solid border-landing-border pb-3">
+      <h2 className="text-landing-accent">Beli Apple</h2>
+      <span className="text-xs text-landing-muted">Jual Apple · Belum tersedia</span>
+    </header>
+  );
 }

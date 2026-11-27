@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 
-type Wallet =
+export type Wallet =
   | { status: "loading" }
   | { status: "unavailable"; retry: () => void }
   | { status: "ready"; address: string };
@@ -13,6 +13,7 @@ export type WalletSession =
   | {
       status: "signed-in";
       userId: string;
+      google?: { name: string | null; email: string };
       wallet: Wallet;
       logout: () => void;
       pending: boolean;

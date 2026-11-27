@@ -1,9 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatAtomic } from "../saham/apple/quote-display";
-import { useWalletSession } from "./session";
-import styles from "./wallet.module.css";
+import { type Wallet, useWalletSession } from "./session";
 
 export function SignInControl({ className, label = "Masuk dengan Google", pendingLabel = "Menghubungkan ke Google…", showError = true }: {
   className: string;
@@ -74,38 +74,72 @@ function PublicBalance({ address }: { address: string }) {
 export function AccountMenu({ buttonClass }: { buttonClass: string }) {
   const session = useWalletSession();
   const [open, setOpen] = useState(false);
+  const signedIn = session.status === "signed-in";
+  const label = signedIn ? session.google?.name || session.google?.email || "Akun 1Stocks" : "Akun";
 
   return (
-    <details className={styles.account} onToggle={(event) => setOpen(event.currentTarget.open)}>
-      <summary>{session.status === "signed-in" ? "Dompet Solana" : "Akun"}</summary>
-      <div className={styles.menu}>
-        {session.status === "unconfigured" && <p>Google belum dikonfigurasi. Pratinjau tetap tersedia.</p>}
+    <details className="relative text-sm" onToggle={(event) => setOpen(event.currentTarget.open)}>
+      <summary aria-label="Akun" className="flex min-h-11 cursor-pointer list-none items-center gap-2.5 rounded-[10px] border border-solid border-landing-border bg-landing-card px-2.5 py-1.5 hover:bg-landing-badge">
+        <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full bg-landing-badge text-landing-accent">
+          {label.slice(0, 1).toLocaleUpperCase("id")}
+        </span>
+        <span className="min-w-0">
+          <span className="block max-w-36 truncate font-medium lg:max-w-full">{label}</span>
+          <span className="hidden truncate text-xs text-landing-muted lg:block">
+            {signedIn ? session.google?.email || "Sesi aktif" : "Pratinjau pembelian"}
+          </span>
+        </span>
+      </summary>
+      <div className="absolute top-full right-0 z-10 mt-2 grid w-[min(285px,calc(100vw-32px))] gap-3 rounded-[10px] border border-solid border-landing-border bg-landing-card p-3 shadow-lg lg:inset-[auto_auto_100%_0] lg:mt-0 lg:mb-2">
+        {session.status === "unconfigured" && <p>Mode tamu. Pratinjau pembelian tersedia tanpa akun.</p>}
         <SignInControl className={buttonClass} />
-        {session.status === "signed-in" && (
+        {signedIn && (
           <>
-            {session.wallet.status === "loading" && <p role="status">Menyiapkan dompet Solana…</p>}
-            {session.wallet.status === "unavailable" && (
-              <>
-                <p role="alert">Dompet Solana belum bisa disiapkan.</p>
-                <button className={buttonClass} type="button" onClick={session.wallet.retry}>Coba lagi</button>
-              </>
-            )}
-            {session.wallet.status === "ready" && (
-              <>
-                <dl>
-                  <dt>Alamat publik</dt>
-                  <dd><code>{session.wallet.address}</code></dd>
-                </dl>
-                {open && <PublicBalance key={session.wallet.address} address={session.wallet.address} />}
-              </>
-            )}
-            <button className={buttonClass} type="button" onClick={session.logout} disabled={session.pending}>
-              {session.pending ? "Keluar…" : "Keluar"}
-            </button>
-            {session.failed && <p role="alert">Sesi belum bisa diakhiri. Coba lagi.</p>}
+            <WalletDetails wallet={session.wallet} buttonClass={buttonClass} showBalance={open} />
+            <SignOutControl className={buttonClass} />
           </>
         )}
+        <Link href="/pengaturan" className="text-landing-accent hover:underline">Pengaturan akun</Link>
+        <Link href="/" className="text-landing-muted hover:underline">Ke halaman awal</Link>
       </div>
     </details>
+  );
+}
+
+export function WalletDetails({ wallet, buttonClass, showBalance = false }: {
+  wallet: Wallet;
+  buttonClass: string;
+  showBalance?: boolean;
+}) {
+  if (wallet.status === "loading") return <p role="status">Menyiapkan dompet Solana…</p>;
+  if (wallet.status === "unavailable") {
+    return (
+      <>
+        <p role="alert">Dompet Solana belum bisa disiapkan.</p>
+        <button className={buttonClass} type="button" onClick={wallet.retry}>Coba lagi</button>
+      </>
+    );
+  }
+  return (
+    <>
+      <dl>
+        <dt className="text-landing-muted">Alamat publik Solana</dt>
+        <dd className="mt-1! wrap-anywhere"><code>{wallet.address}</code></dd>
+      </dl>
+      {showBalance && <PublicBalance key={wallet.address} address={wallet.address} />}
+    </>
+  );
+}
+
+export function SignOutControl({ className }: { className: string }) {
+  const session = useWalletSession();
+  if (session.status !== "signed-in") return null;
+  return (
+    <>
+      <button className={className} type="button" onClick={session.logout} disabled={session.pending}>
+        {session.pending ? "Keluar…" : "Keluar"}
+      </button>
+      {session.failed && <p role="alert">Sesi belum bisa diakhiri. Coba lagi.</p>}
+    </>
   );
 }

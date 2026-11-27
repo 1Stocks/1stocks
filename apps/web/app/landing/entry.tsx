@@ -15,8 +15,8 @@ export function LandingEntry({ compact = false }: { compact?: boolean }) {
 
   if (status === "signed-in" || status === "unconfigured") {
     return (
-      <Link className={className} href="/saham/apple">
-        {status === "signed-in" ? "Buka Apple" : compact ? "Coba demo" : "Coba pratinjau"}
+      <Link className={className} href="/beranda">
+        {status === "signed-in" ? "Buka Beranda" : compact ? "Coba demo" : "Coba pratinjau"}
       </Link>
     );
   }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ApplePreview } from "./apple-preview";
+import { ApplePreview } from "../../../saham/apple/apple-preview";
 
 export const metadata: Metadata = {
   title: "Apple (AAPL) | 1Stocks",
