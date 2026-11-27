@@ -1,55 +1,45 @@
 # 1Stocks web
 
-Bootstrap frontend untuk [GER-14](https://linear.app/geral-workspace/issue/GER-14/bootstrap-frontend-1stocks), sesuai ADR 0001 lokal.
-
-## Prasyarat dan stack
-
-- Node.js `^22.13.0` atau `>=24` dan npm (verifikasi WSL: Node 22.23.5, npm 10.9.9).
-- Next.js 16.4.6 App Router, React 19.3.1, TypeScript, ESLint 10.
-- Aplikasi npm mandiri di `apps/web`; belum memilih tooling monorepo.
-- Tidak membutuhkan `.env`, secret, wallet, RPC, atau layanan eksternal.
-
-Dokumentasi diperiksa lewat Context7 dan dokumentasi yang dibundel dengan Next.js 16.4.6 di `node_modules/next/dist/docs/`: instalasi App Router, ESLint, dan opsi `turbopack.root`. Next.js 16 tidak memiliki `next lint` dan build tidak menjalankan lint; lint harus dijalankan terpisah.
-
 ## Jalankan di WSL
 
-Dari root repo:
+Gunakan Node.js 22 atau lebih baru dan jalankan dari root repo.
 
 ```bash
-cd apps/web
 npm ci
 npm run dev
 ```
 
-Buka <http://localhost:3000>. Server terikat ke loopback `127.0.0.1`, bukan jaringan publik. Halaman awal menampilkan **1Stocks**. Hentikan dengan Ctrl+C.
+Buka [beranda](http://localhost:3000) atau [halaman Apple](http://localhost:3000/saham/apple) dari browser Windows. Perintah dev mengikat server ke `localhost:3000` dan melaporkan konflik jika port itu terpakai.
+
+## Privy dan Google OAuth lokal
+
+Isi `NEXT_PUBLIC_PRIVY_APP_ID` untuk app development di `apps/web/.env.local` sesuai [template env](.env.example), lalu mulai ulang server. App Client ID bersifat opsional. Jika App ID kosong, halaman Apple menyediakan pratinjau tamu.
+
+- Di **Login methods** pada Privy Dashboard, aktifkan **Google** untuk app development. [Dokumentasi OAuth Privy](https://docs.privy.io/authentication/user-authentication/login-methods/oauth)
+- Jika app development memakai **Configuration → App settings → Domains → Allowed origins → Web & mobile web**, masukkan `http://localhost:3000` tanpa path. [Dokumentasi allowed origins](https://docs.privy.io/recipes/dashboard/allowed-domains)
+- Privy kembali ke halaman tempat login dimulai, yaitu `http://localhost:3000/` atau `http://localhost:3000/saham/apple`. Gunakan app development dengan **Allowed OAuth redirect URLs** kosong untuk HTTP lokal. Pengaturan daftar redirect terpisah dari allowed origins dan didokumentasikan untuk URL HTTPS. Pertahankan pengaturan redirect HTTPS pada app produksi. [Dokumentasi allowed OAuth redirects](https://docs.privy.io/recipes/react/allowed-oauth-redirects)
+
+`http://127.0.0.1:3000` adalah origin browser yang berbeda. Pengujian standar memakai `http://localhost:3000`, jadi origin IP loopback tidak perlu didaftarkan. Jika alur lain sengaja menjalankan OAuth melalui IP loopback, konfigurasi origin itu secara terpisah jika didukung dashboard.
 
 ## Verifikasi
 
-Dari `apps/web`:
+Dari root repo, jalankan unit test, lint, typecheck, dan build.
 
 ```bash
-npm ci
-npm run lint
-npm run typecheck
-npm run build
-```
-
-Smoke test membutuhkan server yang sedang berjalan. Setelah `npm run dev` di terminal pertama, jalankan dari terminal kedua:
-
-```bash
-cd apps/web
 npm test
+npm run lint
+npm run build # Termasuk typecheck.
 ```
 
-Test memeriksa HTTP 200, nama 1Stocks dalam heading, metadata judul, bahasa Indonesia, elemen main, pemberitahuan fitur belum tersedia, dan HTTP 404 untuk route tidak dikenal. Untuk port lain, jalankan dev dengan `npm run dev -- --port 3100` dan test dengan `TEST_BASE_URL=http://127.0.0.1:3100 npm test`.
+Setelah `npm run dev`, jalankan smoke test HTTP di terminal kedua.
 
-Untuk memeriksa build produksi, hentikan dev lalu jalankan `npm start` dan `npm test` dari terminal terpisah.
+```bash
+node --test apps/web/tests/smoke.test.mjs
+```
 
-## Batas lingkup
+Smoke test memakai `http://localhost:3000` secara default. Gunakan URL itu juga sebagai `baseURL` pada pemeriksaan Playwright lokal. Smoke test guest preview dijalankan dengan App ID Privy kosong.
 
-Halaman statis menggunakan Server Component dan font sistem tanpa unduhan font. Tidak ada API route/backend, login, wallet, Supabase, quote, atau swap. Konteks produk mengikuti ADR 0001: Solana mainnet hanya untuk membaca harga/quote melalui backend di tiket berikutnya; eksekusi demo memakai token mock di Solana devnet, bukan transaksi saham sungguhan.
-
-## Ringkasan GER-14
+## Ringkasan historis GER-14
 
 File baru:
 

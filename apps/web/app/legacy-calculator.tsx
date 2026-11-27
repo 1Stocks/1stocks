@@ -6,7 +6,7 @@ import { setupEstimator } from "./legacy-estimate";
 export function LegacyCalculator() {
   useEffect(() => {
     const form = document.getElementById("estimate-form");
-    if (form) setupEstimator(form);
+    if (form instanceof HTMLFormElement) return setupEstimator(form);
   }, []);
   return null;
 }

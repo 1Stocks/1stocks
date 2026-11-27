@@ -3,7 +3,7 @@
   "private": true,
   "engines": { "node": ">=22" },
   "scripts": {
-    "dev": "next dev apps/web",
+    "dev": "next dev apps/web --hostname localhost --port 3000",
     "start": "next start apps/web",
     "lint": "eslint apps packages",
     "test": "tsx --tsconfig tsconfig.base.json --test apps/api/test/*.test.ts apps/web/test/*.test.ts packages/shared/test/*.test.ts",
@@ -24,11 +24,14 @@
     "server-only": "0.0.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "4.3.5",
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "eslint": "^9.39.0",
     "eslint-config-next": "16.4.6",
+    "postcss": "8.5.34",
+    "tailwindcss": "4.3.5",
     "tsx": "^4.21.0",
     "typescript": "~5.9.3"
   }
