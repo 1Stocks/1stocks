@@ -3,16 +3,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { MarketSearch } from "../_components/market-search";
 import { pageTitle, panel } from "../_components/styles";
-import { searchStocks } from "./stocks";
+import { issuers, searchCatalog } from "../../../../../packages/asset-catalog/registry/catalog";
 
 export const metadata: Metadata = { title: "Pasar | 1Stocks" };
 
 export default async function PasarPage({ searchParams }: {
-  searchParams: Promise<{ q?: string | string[] }>;
+  searchParams: Promise<{ q?: string | string[]; halaman?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, halaman } = await searchParams;
   const query = typeof q === "string" ? q.trim().slice(0, 80) : "";
-  const stocks = searchStocks(query);
+  const results = searchCatalog(query);
+  const total = Math.max(1, Math.ceil(results.length / 25));
+  const index = Math.min(total, Math.max(1, Number.parseInt(halaman ?? "", 10) || 1));
+  const stocks = results.slice((index - 1) * 25, index * 25);
+  const href = (page: number) => `/pasar?${new URLSearchParams({ q: query, halaman: String(page) })}`;
   const headingClass = "px-2.5 pt-1 pb-2 text-xs font-medium tracking-wider text-landing-muted uppercase";
   const secondaryColumn = "hidden text-right sm:table-cell";
 
@@ -39,7 +43,8 @@ export default async function PasarPage({ searchParams }: {
             </thead>
             <tbody>
               {stocks.map((stock) => {
-                const available = "href" in stock;
+                const available = stock.id === "us0378331005";
+                const issuerNames = [...new Set(stock.products.map(product => issuers[product.issuer].name))].join(", ");
                 const label = (
                   <>
                     <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full bg-[#f4f1ec] text-xs font-semibold text-landing-action">{stock.name[0]}</span>
@@ -47,11 +52,9 @@ export default async function PasarPage({ searchParams }: {
                   </>
                 );
                 return (
-                  <tr key={stock.ticker} className="border-t border-solid border-landing-border">
+                  <tr key={stock.id} className="border-t border-solid border-landing-border">
                     <th scope="row" className="py-2.5 pr-2 text-[13px] font-semibold sm:px-2.5">
-                      {available
-                        ? <Link href={stock.href} className="inline-flex min-h-9 items-center gap-2 hover:text-landing-accent">{label}</Link>
-                        : <span className="inline-flex min-h-9 items-center gap-2">{label}</span>}
+                      <Link href={available ? "/saham/apple" : `/saham/${encodeURIComponent(stock.id)}`} className="inline-flex min-h-9 items-center gap-2 hover:text-landing-accent">{label}</Link>
                     </th>
                     <td className={`${secondaryColumn} px-2.5 text-landing-muted`}><span aria-label="Harga belum tersedia">—</span></td>
                     <td className={`${secondaryColumn} px-2.5 text-landing-muted`}><span aria-label="Perubahan belum tersedia">—</span></td>
@@ -67,7 +70,7 @@ export default async function PasarPage({ searchParams }: {
                       <span className={`inline-block rounded-md border border-solid px-2 py-0.5 text-xs ${available
                         ? "border-[#573b23] bg-[#322112] text-landing-ondo"
                         : "border-landing-border bg-landing-badge text-landing-muted"}`}>
-                        {available ? "2 penerbit" : "Segera hadir"}
+                        {issuerNames}
                       </span>
                     </td>
                   </tr>
@@ -83,6 +86,11 @@ export default async function PasarPage({ searchParams }: {
           </div>
         )}
       </section>
+      {total > 1 && <nav aria-label="Halaman katalog" className="flex gap-4 text-sm">
+        {index > 1 && <Link href={href(index - 1)} className="text-landing-accent">← Sebelumnya</Link>}
+        <span>Halaman {index} / {total}</span>
+        {index < total && <Link href={href(index + 1)} className="text-landing-accent">Berikutnya →</Link>}
+      </nav>}
       <p className="text-xs text-landing-muted">Estimasi aktual tersedia di halaman Apple setelah kamu memasukkan nominal.</p>
     </div>
   );

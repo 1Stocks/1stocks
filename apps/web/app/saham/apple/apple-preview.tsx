@@ -307,6 +307,7 @@ function ApplePurchase({ canQuote }: { canQuote: boolean }) {
       <div className={styles.detailGrid}>
         <header className={styles.assetHeading}>
           <Link href="/pasar" className="mb-2 inline-block text-sm text-landing-muted hover:text-landing-accent">← Pasar</Link>
+          <Link href="/saham/us0378331005" className="ml-4 text-sm text-landing-muted hover:text-landing-accent">Katalog penerbit</Link>
           <h1>Apple Inc.</h1>
           <p>{apple.ticker} · {apple.buyTokens.length} produk token saham</p>
         </header>

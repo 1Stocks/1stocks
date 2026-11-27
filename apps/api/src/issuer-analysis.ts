@@ -1,3 +1,4 @@
+import { catalog, catalogAvailability } from "../../../packages/asset-catalog/registry/catalog";
 import { appleIssuerProfiles, type AppleQuotesResponse } from "@1stocks/shared";
 
 export type IssuerExplanation = { points: Array<{ text: string; evidence: string[] }> };
@@ -7,6 +8,11 @@ const evidenceIds = ["quote-AAPLx", "quote-AAPLon", "profile-AAPLx", "profile-AA
 export function analysisEvidence(data: AppleQuotesResponse, now: number) {
   const fresh = data.quotes.filter(quote => quote.status === "quoted" && Date.parse(quote.expiresAt) > now);
   return {
+    officialCatalog: catalog.find(asset => asset.id === "us0378331005")?.products.map(product => ({
+      issuer: product.issuer, symbol: product.symbol, source: product.source,
+      verifiedAt: product.verifiedAt, status: catalogAvailability(product, now),
+      deployments: product.deployments,
+    })),
     quotes: fresh.map(quote => {
       if (quote.status !== "quoted") throw new Error("Expected a fresh quote");
       return { id: `quote-${quote.token}`, token: quote.token, output: quote.output.amountAtomic,
