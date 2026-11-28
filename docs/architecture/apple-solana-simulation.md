@@ -37,6 +37,10 @@ Pembacaan akun berada pada slot `474801986` dan `474801990`. SPL Token melakukan
 
 Kedua mint dimiliki Token-2022 (`TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb`). Pada saat pemeriksaan, keduanya memiliki `defaultAccountState.accountState = initialized`, `pausableConfig.paused = false`, dan ekstensi `transferHook` dengan `programId = null`. Tanpa program hook yang dikonfigurasi, transfer tidak memerlukan `ExtraAccountMetaList` untuk hook pada snapshot ini. Jika program hook dikonfigurasi kemudian, validasi perlu memakai PDA `extra-account-metas` dan daftar akun untuk transfer yang relevan. Status on-chain ini tidak membuktikan kelayakan wallet atau persetujuan distribusi. [Solana, ATA dan program token](https://solana.com/developers/docs/tokens/basics/create-token-account) · [Solana, integrasi transfer hook](https://solana.com/developers/docs/tokens/extensions/transfer-hook-integration) · [Kelayakan produk untuk Indonesia](eligibility-evidence.md)
 
+## Rekonsiliasi fee kuotasi
+
+Kuotasi baru untuk AAPLx dan AAPLon dengan input 100.000 IDRX menandai fee protokol 250 IDRX sebagai termasuk dalam input. Langkah protokol mencatat 10.000.000 unit atomik masuk dan 9.975.000 unit dilanjutkan ke swap. Rent akun sebesar 1.559.560 lamport dilaporkan terpisah dari input IDRX. Pengembalian gas dan rent perlu dihitung dalam basis biaya sebelum penawaran layak diperingkat. Fee berasal dari instruksi SPL yang benar-benar ada dalam payload LI.FI dan instruksinya dipertahankan.
+
 ## Prasyarat verifikasi lanjutan
 
 - Gunakan wallet sumber yang sudah berwenang untuk pengujian, dengan ATA IDRX yang cocok, saldo IDRX untuk seluruh debit kuotasi termasuk fee, dan SOL yang cukup untuk biaya jaringan dan rent akun yang dibebankan kepadanya.
