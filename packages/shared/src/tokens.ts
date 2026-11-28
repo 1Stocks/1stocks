@@ -2,6 +2,13 @@ export const SOLANA_MAINNET_LIFI_CHAIN_ID = 1151111081099710;
 
 export type TokenSymbol = "IDRX" | "USDC" | "AAPLx" | "AAPLon" | "AAPLB";
 export type AppleBuyToken = "AAPLx" | "AAPLon";
+export type OfficialAppleHolding = {
+  token: AppleBuyToken;
+  account: string;
+  amountAtomic: string;
+  amountDisplay: string | null;
+};
+
 export type AppleIssuerToken = AppleBuyToken | "AAPLB";
 
 type TokenMint = {

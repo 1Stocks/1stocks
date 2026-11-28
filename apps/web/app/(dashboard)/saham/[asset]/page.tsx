@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { availabilityLabels, catalog, catalogAvailability, issuers } from "../../../../../../packages/asset-catalog/registry/catalog";
+import { availabilityLabels, catalog, catalogAvailability, catalogDeployments, issuers } from "../../../../../../packages/asset-catalog/registry/catalog";
 import { pageTitle, panel } from "../../_components/styles";
 
 export default async function CatalogDetail({ params }: { params: Promise<{ asset: string }> }) {
@@ -23,7 +23,12 @@ export default async function CatalogDetail({ params }: { params: Promise<{ asse
             {products.map(product => (
               <div key={product.symbol} className="grid gap-1 text-sm">
                 <p>{product.symbol} · {availabilityLabels[catalogAvailability(product)]}</p>
-                {product.deployments.map(token => <p key={`${token.chain}:${token.address}`} className="wrap-anywhere text-landing-muted">{token.chain} · {token.standard} · <code>{token.address}</code></p>)}
+                {catalogDeployments(product).map(token => (
+                  <div key={token.id} className="grid gap-1 text-landing-muted">
+                    <p>{token.network.label}{token.network.environment === "mainnet" && " mainnet"} · {token.standard} · {token.quoteMode ? "Pratinjau kuotasi" : "Tercatat di katalog"}</p>
+                    <code className="wrap-anywhere text-xs">{token.address}</code>
+                  </div>
+                ))}
                 <p className="text-xs text-landing-muted">Diperiksa {product.verifiedAt.slice(0, 10)} · <a href={product.source} className="text-landing-accent hover:underline">Sumber penerbit</a></p>
               </div>
             ))}

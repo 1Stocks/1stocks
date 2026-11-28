@@ -1,6 +1,7 @@
 import { tokenRegistry } from "../../shared/src/tokens";
 import { sources, verifiedBstocks } from "../providers/sources";
 import type { Issuer, OfficialAsset } from "../providers/normalize";
+import { catalogDeploymentId, catalogNetwork, SOLANA_MAINNET } from "./networks";
 import xstocks from "./xstocks.json";
 import ondo from "./ondo.json";
 
@@ -19,7 +20,7 @@ export function normalizeCatalog(products: readonly CatalogProduct[]) {
   const owners = new Map<string, Set<string>>();
   for (const product of products) {
     for (const token of product.deployments) {
-      const key = `${token.chain}:${token.address}`;
+      const key = catalogDeploymentId(token.chain, token.address);
       const claims = owners.get(key) ?? new Set<string>();
       claims.add(`${product.issuer}:${product.underlying.isin ?? product.symbol}`);
       owners.set(key, claims);
@@ -27,7 +28,7 @@ export function normalizeCatalog(products: readonly CatalogProduct[]) {
   }
   for (const product of products) {
     const deployments = product.deployments.filter(({ chain, address }) => {
-      const identity = `${chain}:${address}`;
+      const identity = catalogDeploymentId(chain, address);
       if ((owners.get(identity)?.size ?? 0) > 1 || identities.has(identity)) return false;
       identities.add(identity);
       return true;
@@ -49,16 +50,39 @@ export const catalog = normalizeCatalog([
   ...verifiedBstocks.map(asset => ({ ...asset, verifiedAt: "2026-11-28" })),
 ]);
 
+function verifiedAppleMint(product: CatalogProduct) {
+  if (product.underlying.isin !== "US0378331005") return null;
+  if (product.issuer === "xstocks") return tokenRegistry.AAPLx.solanaMainnet.mint;
+  if (product.issuer === "ondo") return tokenRegistry.AAPLon.solanaMainnet.mint;
+  return null;
+}
+
 export function catalogAvailability(product: CatalogProduct, now = Date.now()) {
   if (product.halted) return "restricted";
   if (!(Date.parse(product.verifiedAt) + 30 * 86_400_000 > now)) return "stale";
-  if (!product.deployments.some(deployment => deployment.chain === "solana-mainnet")) return "unsupported-chain";
-  if (product.underlying.isin === "US0378331005") {
-    const expected = product.issuer === "xstocks" ? tokenRegistry.AAPLx.solanaMainnet.mint.address
-      : product.issuer === "ondo" ? tokenRegistry.AAPLon.solanaMainnet.mint.address : null;
-    if (product.deployments.some(deployment => deployment.chain === "solana-mainnet" && deployment.address === expected)) return "quote-only";
+  if (!product.deployments.some(deployment => deployment.chain === SOLANA_MAINNET)) return "unsupported-chain";
+  const mint = verifiedAppleMint(product);
+  if (product.deployments.some(deployment => deployment.chain === SOLANA_MAINNET && deployment.address === mint?.address)) {
+    return "quote-only";
   }
   return "catalog-only";
+}
+
+export function catalogDeployments(product: CatalogProduct, now = Date.now()) {
+  const mint = verifiedAppleMint(product);
+  const availability = catalogAvailability(product, now);
+
+  return product.deployments.map(deployment => {
+    const network = catalogNetwork(deployment.chain);
+    const officialMint = deployment.chain === SOLANA_MAINNET && deployment.address === mint?.address;
+    return {
+      ...deployment,
+      id: catalogDeploymentId(deployment.chain, deployment.address),
+      network,
+      decimals: officialMint ? mint.decimals : null,
+      quoteMode: officialMint && availability === "quote-only" ? "quote-only" : null,
+    } as const;
+  });
 }
 
 export const availabilityLabels = {
