@@ -24,7 +24,7 @@ type TokenDeployment =
 type TokenRecord = {
   symbol: TokenSymbol;
   issuer: string;
-  canBuy: boolean;
+  supportsAppleQuotePreview: boolean;
   solanaMainnet: TokenDeployment;
   solanaDevnet: TokenDeployment;
 };
@@ -40,7 +40,7 @@ export const tokenRegistry = {
   IDRX: {
     symbol: "IDRX",
     issuer: "IDRX",
-    canBuy: false,
+    supportsAppleQuotePreview: false,
     solanaMainnet: verified(
       "idrxZcP8xiKkYk6XGD4uz1dxEYCWSgKDHqgjsBbwDur", 2,
       "https://docs.idrx.co/introduction/supported-chain-and-contract-address",
@@ -50,14 +50,14 @@ export const tokenRegistry = {
   USDC: {
     symbol: "USDC",
     issuer: "Circle",
-    canBuy: false,
+    supportsAppleQuotePreview: false,
     solanaMainnet: verified("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", 6, circleMints),
     solanaDevnet: verified("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU", 6, circleMints),
   },
   AAPLx: {
     symbol: "AAPLx",
     issuer: "Backed Assets (JE) Limited",
-    canBuy: true,
+    supportsAppleQuotePreview: true,
     solanaMainnet: verified(
       "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp", 8,
       "https://assets.backed.fi/products/apple-xstock",
@@ -67,7 +67,7 @@ export const tokenRegistry = {
   AAPLon: {
     symbol: "AAPLon",
     issuer: "Ondo Global Markets (BVI) Limited",
-    canBuy: true,
+    supportsAppleQuotePreview: true,
     solanaMainnet: verified(
       "123mYEnRLM2LLYsJW3K6oyYh8uP1fngj732iG638ondo", 9,
       "https://github.com/ondoprotocol/gm-solana-simulator#token-list",
@@ -77,7 +77,7 @@ export const tokenRegistry = {
   AAPLB: {
     symbol: "AAPLB",
     issuer: "Binance bStocks",
-    canBuy: false,
+    supportsAppleQuotePreview: false,
     solanaMainnet: { status: "not-listed", mint: null },
     solanaDevnet: unverified,
   },

@@ -6,12 +6,12 @@ test("only verified Solana Apple candidates are offered for a buy quote", () => 
   assert.deepEqual(apple.buyTokens, ["AAPLx", "AAPLon"]);
   for (const symbol of apple.buyTokens) {
     const token = tokenRegistry[symbol];
-    assert.equal(token.canBuy, true);
+    assert.equal(token.supportsAppleQuotePreview, true);
     assert.equal(token.solanaMainnet.status, "verified");
     assert.match(token.solanaMainnet.mint.sourceUrl, /^https:\/\//);
     assert.deepEqual(token.solanaDevnet, { status: "unverified", mint: null });
   }
-  assert.equal(tokenRegistry.AAPLB.canBuy, false);
+  assert.equal(tokenRegistry.AAPLB.supportsAppleQuotePreview, false);
   assert.equal(tokenRegistry.AAPLB.solanaMainnet.mint, null);
 });
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { availabilityLabels, catalog, catalogAvailability, catalogDeployments, issuers } from "../../../../../../packages/asset-catalog/registry/catalog";
+import { issuerJurisdictionPolicy } from "../../../../../../packages/asset-catalog/registry/issuer-policies";
 import { pageTitle, panel } from "../../_components/styles";
 
 export default async function CatalogDetail({ params }: { params: Promise<{ asset: string }> }) {
@@ -20,18 +21,23 @@ export default async function CatalogDetail({ params }: { params: Promise<{ asse
             <h2 className="font-semibold">{issuer.name}</h2>
             <p className="text-sm text-landing-muted">{issuer.legalEntity}</p>
             {products.length === 0 && <p className="text-sm">Produk belum tersedia dari penerbit ini di katalog terverifikasi.</p>}
-            {products.map(product => (
-              <div key={product.symbol} className="grid gap-1 text-sm">
-                <p>{product.symbol} · {availabilityLabels[catalogAvailability(product)]}</p>
-                {catalogDeployments(product).map(token => (
-                  <div key={token.id} className="grid gap-1 text-landing-muted">
-                    <p>{token.network.label}{token.network.environment === "mainnet" && " mainnet"} · {token.standard} · {token.quoteMode ? "Pratinjau kuotasi" : "Tercatat di katalog"}</p>
-                    <code className="wrap-anywhere text-xs">{token.address}</code>
-                  </div>
-                ))}
-                <p className="text-xs text-landing-muted">Diperiksa {product.verifiedAt.slice(0, 10)} · <a href={product.source} className="text-landing-accent hover:underline">Sumber penerbit</a></p>
-              </div>
-            ))}
+            {products.map(product => {
+              const policy = issuerJurisdictionPolicy(product.issuer, "ID");
+              return (
+                <div key={product.symbol} className="grid gap-1 text-sm">
+                  <p>{product.symbol} · {availabilityLabels[catalogAvailability(product)]}</p>
+                  {policy.status === "RESTRICTED" &&
+                    <p>Akses dibatasi untuk pengguna Indonesia. <a href={policy.source} className="text-landing-accent hover:underline">Kebijakan penerbit</a></p>}
+                  {catalogDeployments(product).map(token => (
+                    <div key={token.id} className="grid gap-1 text-landing-muted">
+                      <p>{token.network.label}{token.network.environment === "mainnet" && " mainnet"} · {token.standard} · {token.quoteMode ? "Pratinjau kuotasi" : "Tercatat di katalog"}</p>
+                      <code className="wrap-anywhere text-xs">{token.address}</code>
+                    </div>
+                  ))}
+                  <p className="text-xs text-landing-muted">Diperiksa {product.verifiedAt.slice(0, 10)} · <a href={product.source} className="text-landing-accent hover:underline">Sumber penerbit</a></p>
+                </div>
+              );
+            })}
           </section>
         );
       })}

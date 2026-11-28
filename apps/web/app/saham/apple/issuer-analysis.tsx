@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { issuerJurisdictionPolicy } from "../../../../../packages/asset-catalog/registry/issuer-policies";
 import { appleIssuerProfiles } from "@1stocks/shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useWalletSession } from "../../wallet/session";
@@ -21,11 +22,19 @@ const sources: Record<string, string> = {
   "catalog-xstocks": "Katalog xStocks",
   "catalog-ondo": "Katalog Ondo",
   "catalog-bstocks": "Katalog bStocks",
+  "route-AAPLx": "Rute AAPLx",
+  "route-AAPLon": "Rute AAPLon",
+  "policy-xstocks": "Kebijakan xStocks",
+  "policy-ondo": "Kebijakan Ondo",
+  "policy-bstocks": "Pembatasan bStocks",
   eligibility: "Pemeriksaan deterministik",
 };
 const documents: Record<string, string> = {
   "profile-AAPLx": appleIssuerProfiles.AAPLx.documentUrl,
   "profile-AAPLon": appleIssuerProfiles.AAPLon.documentUrl,
+  "policy-xstocks": issuerJurisdictionPolicy("xstocks", "ID").source,
+  "policy-ondo": issuerJurisdictionPolicy("ondo", "ID").source,
+  "policy-bstocks": issuerJurisdictionPolicy("bstocks", "ID").source,
 };
 const time = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", timeStyle: "medium" });
 

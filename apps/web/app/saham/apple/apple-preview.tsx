@@ -47,12 +47,14 @@ const gapLabels = {
   ELIGIBILITY_UNVERIFIED: "Kelayakan pengguna belum diverifikasi",
   EXPOSURE_UNVERIFIED: "Normalisasi eksposur belum terverifikasi",
   COST_INCOMPLETE: "Biaya total dalam IDRX belum terverifikasi",
+  BUDGET_EXCEEDED: "Biaya total melebihi nominal",
+  PRICE_IMPACT_EXCEEDED: "Dampak harga melebihi batas",
 };
 
 function describeDecision(decision: AppleIssuerSelection["decision"]) {
   if (decision.status === "recommended") return {
     title: "Rekomendasi untuk nominal ini",
-    detail: "Biaya untuk eksposur yang setara lebih rendah, termasuk pada batas minimum diterima.",
+    detail: "Dipilih dari penawaran dengan kelayakan, eksposur, dan biaya dalam anggaran yang terverifikasi.",
   };
   if (decision.status === "only_quotable") return {
     title: "Satu penawaran tersedia",
@@ -70,7 +72,8 @@ function describeDecision(decision: AppleIssuerSelection["decision"]) {
 
 function explainExclusion(reason: Extract<AppleIssuerEvaluation, { status: "excluded" }>["reason"]) {
   switch (reason) {
-    case "UNSUPPORTED_SOLANA": return "Di luar cakupan demo. AAPLB tidak terdaftar pada Solana untuk 1Stocks.";
+    case "UNSUPPORTED_SOLANA": return "Deployment ini belum didukung oleh adapter pratinjau.";
+    case "JURISDICTION_RESTRICTED": return "Penerbit membatasi akses AAPLB untuk pengguna Indonesia.";
     case "PRODUCT_RESTRICTED": return "Ketentuan penerbit mengecualikan produk ini untuk profil pengguna.";
     case "QUOTE_EXPIRED": return "Estimasi kedaluwarsa.";
     default: return quoteErrors[reason];
@@ -329,7 +332,7 @@ function ApplePurchase({ canQuote }: { canQuote: boolean }) {
               <dl className="grid gap-3 text-sm sm:grid-cols-3">
                 <div><dt className="text-landing-muted">Saham acuan</dt><dd>Apple Inc. (AAPL)</dd></div>
                 <div><dt className="text-landing-muted">Produk yang dievaluasi</dt><dd>AAPLx dan AAPLon</dd></div>
-                <div><dt className="text-landing-muted">Produk di luar cakupan</dt><dd>AAPLB</dd></div>
+                <div><dt className="text-landing-muted">Dibatasi untuk Indonesia</dt><dd>AAPLB</dd></div>
               </dl>
             </section>
           </div>

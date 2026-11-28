@@ -20,6 +20,17 @@ export type QuoteErrorCode =
   | "UPSTREAM_ERROR"
   | "BUSY";
 
+type RouteAsset = { chainId: string; address: string };
+
+export type PurchaseRoute = {
+  id: string;
+  issuer: "xstocks" | "ondo" | "bstocks";
+  funding: RouteAsset;
+  deployment: RouteAsset;
+  provider: string;
+  tool: string | null;
+};
+
 export type AppleQuoteResult =
   | {
       status: "quoted";
@@ -28,6 +39,7 @@ export type AppleQuoteResult =
       fetchedAt: string;
       expiresAt: string;
       router: string | null;
+      route?: PurchaseRoute;
       output: QuoteAmount<AppleBuyToken>;
       minimumOutputAtomic: string;
       idrxPerToken: string;
@@ -36,7 +48,7 @@ export type AppleQuoteResult =
     }
   | { status: "unavailable"; token: AppleBuyToken; code: QuoteErrorCode };
 
-export type IssuerComparisonGap = "ELIGIBILITY_UNVERIFIED" | "EXPOSURE_UNVERIFIED" | "COST_INCOMPLETE";
+export type IssuerComparisonGap = "ELIGIBILITY_UNVERIFIED" | "EXPOSURE_UNVERIFIED" | "COST_INCOMPLETE" | "BUDGET_EXCEEDED" | "PRICE_IMPACT_EXCEEDED";
 
 export type IssuerProfile = {
   documentUrl: string;
@@ -49,7 +61,7 @@ export type AppleIssuerEvaluation =
   | {
       token: AppleIssuerToken;
       status: "excluded";
-      reason: "UNSUPPORTED_SOLANA" | "PRODUCT_RESTRICTED" | "QUOTE_EXPIRED" | QuoteErrorCode;
+      reason: "UNSUPPORTED_SOLANA" | "JURISDICTION_RESTRICTED" | "PRODUCT_RESTRICTED" | "QUOTE_EXPIRED" | QuoteErrorCode;
     }
   | {
       token: AppleBuyToken;
@@ -64,7 +76,7 @@ export type AppleIssuerEvaluation =
 export type AppleIssuerSelection = {
   candidates: AppleIssuerEvaluation[];
   decision:
-    | { status: "recommended"; token: AppleBuyToken; quoteId: string; reason: "LOWEST_VERIFIED_EXECUTION_COST" }
+    | { status: "recommended"; token: AppleBuyToken; quoteId: string; route: PurchaseRoute; reason: "LOWEST_VERIFIED_EXECUTION_COST" }
     | { status: "only_quotable"; token: AppleBuyToken; quoteId: string; reason: "ONLY_FRESH_ROUTE" }
     | { status: "unavailable"; reason: "NO_FRESH_ROUTES" | "MISSING_COMPARISON_DATA" | "INCOMPARABLE_PRODUCTS" | "COST_TIE" | "COST_RANGES_OVERLAP" };
 };

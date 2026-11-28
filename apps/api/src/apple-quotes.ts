@@ -2,7 +2,7 @@ import {
   SOLANA_MAINNET_LIFI_CHAIN_ID, tokenRegistry,
   type AppleBuyToken, type AppleQuoteResult, type AppleQuotesResponse, type QuoteErrorCode, type QuoteFee,
 } from "@1stocks/shared";
-import { selectAppleIssuer, type AppleIssuerEvidence } from "./issuer-selection";
+import { applePreviewRoute, selectAppleIssuer, type AppleIssuerEvidence } from "./issuer-selection";
 
 const QUOTE_URL = "https://li.quest/v1/quote";
 const IDRX = tokenRegistry.IDRX.solanaMainnet.mint;
@@ -84,13 +84,15 @@ function normalizeQuote(raw: unknown, token: AppleBuyToken, amount: string, time
 
   const priceHundredths = (BigInt(amount) * 10n ** BigInt(mint.decimals) + output / 2n) / output;
   const price = `${priceHundredths / 100n}.${(priceHundredths % 100n).toString().padStart(2, "0")}`;
+  const tool = typeof quote.tool === "string" ? quote.tool : null;
   return {
     status: "quoted",
     token,
     quoteId: quote.id,
     fetchedAt: new Date(timestamp).toISOString(),
     expiresAt: new Date(timestamp + QUOTE_TTL_MS).toISOString(),
-    router: typeof quote.tool === "string" ? quote.tool : null,
+    router: tool,
+    route: applePreviewRoute(token, quote.id, tool),
     output: { symbol: token, mint: mint.address, decimals: mint.decimals, amountAtomic: estimated.toAmount },
     minimumOutputAtomic: estimated.toAmountMin,
     idrxPerToken: price,
