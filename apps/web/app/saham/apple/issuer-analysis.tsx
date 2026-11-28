@@ -29,6 +29,10 @@ const sources: Record<string, string> = {
   "policy-bstocks": "Pembatasan bStocks",
   eligibility: "Pemeriksaan deterministik",
 };
+function evidenceLabel(id: string) {
+  return sources[id] ?? (id.startsWith("multi:") ? id.slice(6).replace(":", " · ") : id);
+}
+
 const documents: Record<string, string> = {
   "profile-AAPLx": appleIssuerProfiles.AAPLx.documentUrl,
   "profile-AAPLon": appleIssuerProfiles.AAPLon.documentUrl,
@@ -85,17 +89,17 @@ export function IssuerAnalysis({ amount }: { amount: string }) {
                   {point.evidence.map((id, i) => (
                     <span key={`${id}-${i}`}>{i > 0 && " · "}
                       {documents[id] ? (
-                        <a href={documents[id]} target="_blank" rel="noreferrer" className="text-landing-accent underline!">{sources[id]}</a>
+                        <a href={documents[id]} target="_blank" rel="noreferrer" className="text-landing-accent underline!">{evidenceLabel(id)}</a>
                       ) : id.startsWith("catalog-") && sources[id] ? (
-                        <Link href="/saham/us0378331005" className="text-landing-accent underline!">{sources[id]}</Link>
-                      ) : sources[id]}
+                        <Link href="/saham/us0378331005" className="text-landing-accent underline!">{evidenceLabel(id)}</Link>
+                      ) : evidenceLabel(id)}
                     </span>
                   ))}
                 </span>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-landing-muted">OpenAI {state.model} · {state.freshness.map(quote => `${sources[quote.id]} ${time.format(new Date(quote.fetchedAt))} WIB (berlaku hingga ${time.format(new Date(quote.expiresAt))} WIB)`).join(" · ")}. Penjelasan ini tidak menjadi dasar nasihat investasi.</p>
+          <p className="text-xs text-landing-muted">OpenAI {state.model} · {state.freshness.map(quote => `${evidenceLabel(quote.id)} ${time.format(new Date(quote.fetchedAt))} WIB (berlaku hingga ${time.format(new Date(quote.expiresAt))} WIB)`).join(" · ")}. Penjelasan ini tidak menjadi dasar nasihat investasi.</p>
         </>
       )}
       {state === "error" && <p role="alert" className="text-sm">Analisis AI belum tersedia. Kamu tetap bisa membandingkan kuotasi.</p>}

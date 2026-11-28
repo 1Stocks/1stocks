@@ -11,6 +11,7 @@ export type QuoteFee = {
   name: string;
   amount: QuoteAmount<string>;
   included?: boolean;
+  reportedUsd?: string;
 };
 
 export type QuoteErrorCode =
@@ -45,6 +46,7 @@ export type AppleQuoteResult =
       idrxPerToken: string;
       feeCosts: QuoteFee[];
       gasCosts: QuoteFee[];
+      costData?: "reported" | "partial";
     }
   | { status: "unavailable"; token: AppleBuyToken; code: QuoteErrorCode };
 
@@ -81,6 +83,32 @@ export type AppleIssuerSelection = {
     | { status: "unavailable"; reason: "NO_FRESH_ROUTES" | "MISSING_COMPARISON_DATA" | "INCOMPARABLE_PRODUCTS" | "COST_TIE" | "COST_RANGES_OVERLAP" };
 };
 
+export type AppleQuoteNetwork = "Solana" | "Ethereum" | "BNB Smart Chain";
+
+export type AppleMultichainOffer = { token: AppleBuyToken; network: AppleQuoteNetwork } & (
+  | { status: "unavailable"; code: QuoteErrorCode }
+  | {
+      status: "quoted";
+      route: PurchaseRoute;
+      funding: QuoteAmount<"USDC">;
+      fundingBasis: "solana-usdc" | "ethereum-prefunded-usdc" | "bnb-prefunded-binance-peg-usdc";
+      output: QuoteAmount<AppleBuyToken>;
+      minimumOutputAtomic: string;
+      feeCosts: QuoteFee[];
+      gasCosts: QuoteFee[];
+      costData: "reported" | "partial";
+      fetchedAt: string;
+      expiresAt: string;
+    }
+);
+
+export type AppleMultichainPreview = {
+  mode: "indicative";
+  productionEligibility: "UNKNOWN";
+  benchmark: { minimumUsdcAtomic: string; comparisonUsdcAtomic: string; fetchedAt: string; expiresAt: string } | null;
+  offers: AppleMultichainOffer[];
+};
+
 export type AppleQuotesResponse = {
   source: "LI.FI";
   cluster: "solana-mainnet";
@@ -88,4 +116,5 @@ export type AppleQuotesResponse = {
   input: QuoteAmount<"IDRX">;
   quotes: AppleQuoteResult[];
   selection: AppleIssuerSelection;
+  multichain?: AppleMultichainPreview;
 };

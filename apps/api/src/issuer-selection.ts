@@ -80,6 +80,7 @@ function verifiedExposure(context: EligibilityContext, evidence: IssuerEvidence 
 }
 
 function totalIdrxCost(input: string, quote: Quoted) {
+  if (quote.costData !== "reported") return null;
   let total = BigInt(input);
   for (const fee of [...quote.feeCosts, ...quote.gasCosts]) {
     const value = BigInt(fee.amount.amountAtomic);

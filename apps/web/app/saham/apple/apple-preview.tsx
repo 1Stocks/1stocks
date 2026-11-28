@@ -12,6 +12,7 @@ import { SignInControl } from "../../wallet/account";
 import { useWalletSession } from "../../wallet/session";
 import { canPreviewApple } from "../../wallet/session-policy";
 import { IssuerAnalysis } from "./issuer-analysis";
+import { AppleMultichainComparison } from "./multichain-comparison";
 import styles from "./preview.module.css";
 
 const presets = [
@@ -219,6 +220,10 @@ function ApplePurchase({ canQuote }: { canQuote: boolean }) {
       if (quote.status !== "quoted") return [];
       return [window.setTimeout(() => setQuoteNow(Date.now()), Math.max(0, Date.parse(quote.expiresAt) - Date.now() + 5))];
     });
+    const multichainExpiry = activeSet.data.multichain?.benchmark?.expiresAt;
+    if (multichainExpiry) {
+      timers.push(window.setTimeout(() => setQuoteNow(Date.now()), Math.max(0, Date.parse(multichainExpiry) - Date.now() + 5)));
+    }
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [activeSet]);
 
@@ -454,8 +459,10 @@ function ApplePurchase({ canQuote }: { canQuote: boolean }) {
               }}>Tinjau estimasi</button>
             </div>
           </div>
+          {comparison.set.data.multichain &&
+            <AppleMultichainComparison preview={comparison.set.data.multichain} now={quoteNow} />}
           <IssuerTerms set={comparison.set} />
-          <IssuerAnalysis key={comparison.set.data.quotes.map(quote => quote.status === "quoted" ? quote.quoteId : quote.token).join(":")} amount={comparison.set.amount} />
+          <IssuerAnalysis key={comparison.set.data.quotes.map(quote => quote.status === "quoted" ? quote.quoteId : quote.token).join(":") + (comparison.set.data.multichain?.benchmark?.fetchedAt ?? "")} amount={comparison.set.amount} />
         </section>
     )}
 

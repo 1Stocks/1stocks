@@ -14,7 +14,7 @@ function quote(token: AppleBuyToken, output: string, minimum = output, fees: Quo
   return {
     token, status: "quoted", quoteId: `test-${token}`,
     fetchedAt: new Date(now).toISOString(), expiresAt: new Date(30_000).toISOString(),
-    router: "test-router", idrxPerToken: "0", feeCosts: fees, gasCosts: [],
+    router: "test-router", idrxPerToken: "0", feeCosts: fees, gasCosts: [], costData: "reported",
     output: { symbol: token, mint: mint.address, decimals: mint.decimals, amountAtomic: output },
     minimumOutputAtomic: minimum,
   };
@@ -142,4 +142,11 @@ test("withholds a quote after route-bound evidence identifies a restricted execu
   });
   assert.deepEqual(quotes.map(quote => quote.token), ["AAPLon"]);
   assert.deepEqual(selection.candidates[0], { token: "AAPLx", status: "excluded", reason: "PRODUCT_RESTRICTED" });
+});
+
+test("declines financial ranking when the provider's fee data is partial even with eligibility attestations", async () => {
+  const { selection } = await selectAppleIssuer(amount, async token => ({
+    ...quote(token, "20000000"), costData: "partial",
+  }), () => now, complete);
+  assert.deepEqual(selection.decision, { status: "unavailable", reason: "MISSING_COMPARISON_DATA" });
 });
