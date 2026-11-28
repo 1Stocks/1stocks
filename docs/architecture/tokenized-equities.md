@@ -1,6 +1,6 @@
 # Arsitektur agregator saham tertokenisasi
 
-1Stocks adalah agregator saham tertokenisasi lintas penerbit dan jaringan untuk investor ritel Indonesia. Pengguna mulai dari saham dan nominal rupiah. Pilihan akhir, jika tersedia, adalah kombinasi penerbit, deployment resmi, aset pendanaan, jaringan sumber dan tujuan, serta penyedia dan rute. Solana mengisi adapter pratinjau yang tersedia saat ini. Penerbitan token produksi, DEX, pengoperasian bridge, dan protokol sintetis berada di luar lingkup.
+Visi, pengguna, dan cakupan geografis dijelaskan di [PRD](../product/PRD.md). Dokumen ini memetakan sistem saat ini untuk Indonesia dan rancangan perluasan. Pengguna mulai dari saham acuan dan nominal rupiah. Kandidat mengikat penerbit, deployment resmi, konteks pendanaan, jaringan sumber dan tujuan, serta penyedia dan rute.
 
 ## Alur produk
 
@@ -126,6 +126,8 @@ HTTP lokal dengan nominal Rp200.000 mengembalikan kelima penawaran dengan patoka
 RPC Ethereum dan BNB mengonfirmasi desimal 18 untuk kontrak Apple yang diuji pada kedua jaringan. USDC Ethereum memiliki 6 desimal dan Binance-Peg USDC BNB memiliki 18 desimal. Pengujian juga menemukan bahwa LI.FI dapat mengembalikan rute AAPLx Ethereum untuk 10 USDC dan nol rute pada nominal dekat 10 USDC lain. Temuan itu berlaku pada saat pemeriksaan. Rute yang sama dapat berubah atau hilang pada permintaan berikutnya.
 
 ## AI dan seleksi
+
+Lihat [spesifikasi mesin seleksi dan penjelasan AI](AI-DECISION-ENGINE.md) untuk kontrak bukti, aturan abstain, dan evaluasi.
 
 ```mermaid
 flowchart LR
