@@ -3,7 +3,7 @@ import { deployment, normalizeIsin, parseCsv, type OfficialAsset } from "./norma
 export const sources = {
   xstocks: "https://api.xstocks.fi/api/v2/public/assets",
   ondo: "https://docs.ondo.finance/addresses",
-  bstocks: "https://www.binance.com/en-IN/square/post/349898403645041",
+  bstocks: "https://www.binance.com/en/support/announcement/detail/fd3c0f17a7504eb5be1cb1911c6da0cd",
 } as const;
 
 async function read(url: string, request: typeof fetch) {
@@ -60,7 +60,7 @@ export async function discoverOndo(request = fetch): Promise<OfficialAsset[]> {
   });
 }
 
-// Listing and BNB contract cross-reference are documented in ADR 0001.
+// The Binance listing announcement confirms this BNB Smart Chain contract.
 export const verifiedBstocks: OfficialAsset[] = [{
   assetType: "official", issuer: "bstocks", symbol: "AAPLB", source: sources.bstocks,
   underlying: { isin: "US0378331005", ticker: "AAPL", name: "Apple", kind: "stock" },

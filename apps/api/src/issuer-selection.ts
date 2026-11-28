@@ -1,51 +1,86 @@
 import {
-  apple, tokenRegistry, type AppleBuyToken, type AppleIssuerEvaluation,
-  type AppleIssuerSelection, type AppleQuoteResult, type IssuerComparisonGap,
+  apple, tokenRegistry, type AppleBuyToken, type AppleIssuerEvaluation, type AppleIssuerSelection,
+  type AppleIssuerToken, type AppleQuoteResult, type IssuerComparisonGap, type PurchaseRoute,
 } from "@1stocks/shared";
+import { catalog } from "../../../packages/asset-catalog/registry/catalog";
+import { catalogDeploymentId, SOLANA_MAINNET, SOLANA_MAINNET_CHAIN_ID } from "../../../packages/asset-catalog/registry/networks";
+import { eligibilityRouteKey, evaluatePurchaseEligibility, type EligibilityContext, type EligibilityEvidence } from "./purchase-eligibility";
+import { formatIdrx, rankPurchaseOffers, type PurchaseOffer } from "./purchase-ranking";
 
 type Quoted = Extract<AppleQuoteResult, { status: "quoted" }>;
 type Quotable = Extract<AppleIssuerEvaluation, { status: "quotable" }>;
 
-// Supplied by a trusted server-side source for the current product and user context.
-// A successful quote provides neither of these attestations.
 export type IssuerEvidence = {
-  eligibility?: { status: "verified" | "restricted"; expiresAt: number };
+  investor?: EligibilityContext["investor"];
+  eligibility?: EligibilityEvidence;
   exposure?: {
     underlying: typeof apple.ticker;
-    mint: string;
+    deploymentId: string;
     equivalenceGroup: string;
     sharesNumerator: string;
     sharesDenominator: string;
+    source: string;
     expiresAt: number;
   };
-  completeFees?: boolean;
+  quoteCosts?: {
+    routeKey: string;
+    expiresAt: number;
+    priceImpactBps: number;
+    maxPriceImpactBps: number;
+  };
 };
 export type AppleIssuerEvidence = Partial<Record<AppleBuyToken, IssuerEvidence>>;
 
-type Ratio = { numerator: bigint; denominator: bigint };
-type Comparable = { candidate: Quotable; group: string; estimated: Ratio; atMinimum: Ratio };
+const appleIsin = "US0378331005";
+const appleProducts = catalog.find(asset => asset.id === appleIsin.toLowerCase())?.products ?? [];
+const issuerNames = { AAPLx: "xstocks", AAPLon: "ondo", AAPLB: "bstocks" } as const;
+const idrx = tokenRegistry.IDRX.solanaMainnet.mint;
 
-function eligibleIssuer(token: (typeof apple.issuerTokens)[number]): token is AppleBuyToken {
-  return tokenRegistry[token].canBuy && tokenRegistry[token].solanaMainnet.status === "verified";
+function productFor(token: AppleIssuerToken) {
+  return appleProducts.find(product => product.issuer === issuerNames[token] && product.symbol === token);
 }
 
-function productEligibility(evidence: IssuerEvidence | undefined, now: number) {
-  const eligibility = evidence?.eligibility;
-  return eligibility && eligibility.expiresAt > now ? eligibility.status : "unverified";
+export function applePreviewRoute(token: AppleBuyToken, id: string, tool: string | null): PurchaseRoute {
+  return {
+    id, issuer: issuerNames[token], provider: "LI.FI", tool,
+    funding: { chainId: SOLANA_MAINNET_CHAIN_ID, address: idrx.address },
+    deployment: { chainId: SOLANA_MAINNET_CHAIN_ID, address: tokenRegistry[token].solanaMainnet.mint.address },
+  };
 }
 
-function verifiedExposure(quote: Quoted, evidence: IssuerEvidence | undefined, now: number) {
+function supportsApplePreview(token: AppleIssuerToken): token is AppleBuyToken {
+  const registry = tokenRegistry[token];
+  return registry.supportsAppleQuotePreview && registry.solanaMainnet.status === "verified" &&
+    productFor(token)?.deployments.some(deployment =>
+      deployment.chain === SOLANA_MAINNET && deployment.address === registry.solanaMainnet.mint?.address
+    ) === true;
+}
+
+function contextFor(token: AppleIssuerToken, evidence?: IssuerEvidence, route?: PurchaseRoute): EligibilityContext {
+  const registry = tokenRegistry[token].solanaMainnet;
+  const deployment = productFor(token)?.deployments.find(item =>
+    registry.status === "verified" ? item.chain === SOLANA_MAINNET && item.address === registry.mint.address : true
+  );
+  return {
+    issuer: issuerNames[token], jurisdiction: "ID",
+    deploymentId: deployment ? catalogDeploymentId(deployment.chain, deployment.address) : "",
+    investor: evidence?.investor,
+    routeKey: route && eligibilityRouteKey(route),
+  };
+}
+
+function verifiedExposure(context: EligibilityContext, evidence: IssuerEvidence | undefined, now: number) {
   const exposure = evidence?.exposure;
-  if (!exposure || exposure.expiresAt <= now || exposure.underlying !== apple.ticker ||
-      exposure.mint !== quote.output.mint || !exposure.equivalenceGroup.trim() ||
+  if (!exposure || !(exposure.expiresAt > now) || exposure.underlying !== apple.ticker ||
+      exposure.deploymentId !== context.deploymentId || !exposure.equivalenceGroup.trim() ||
+      URL.parse(exposure.source)?.protocol !== "https:" ||
       !/^[1-9]\d{0,29}$/.test(exposure.sharesNumerator) ||
       !/^[1-9]\d{0,29}$/.test(exposure.sharesDenominator)) return null;
   return exposure;
 }
 
-function totalIdrxCost(input: string, quote: Quoted, evidence: IssuerEvidence | undefined) {
-  if (!evidence?.completeFees) return null;
-  const idrx = tokenRegistry.IDRX.solanaMainnet.mint;
+function totalIdrxCost(input: string, quote: Quoted) {
+  if (quote.costData !== "reported") return null;
   let total = BigInt(input);
   for (const fee of [...quote.feeCosts, ...quote.gasCosts]) {
     const value = BigInt(fee.amount.amountAtomic);
@@ -56,16 +91,6 @@ function totalIdrxCost(input: string, quote: Quoted, evidence: IssuerEvidence | 
   return total;
 }
 
-function compare(left: Ratio, right: Ratio) {
-  const difference = left.numerator * right.denominator - right.numerator * left.denominator;
-  return difference < 0n ? -1 : difference > 0n ? 1 : 0;
-}
-
-function formatIdrx(ratio: Ratio) {
-  const atomic = (ratio.numerator + ratio.denominator / 2n) / ratio.denominator;
-  return `${atomic / 100n}.${(atomic % 100n).toString().padStart(2, "0")}`;
-}
-
 export async function selectAppleIssuer(
   amount: string,
   getQuote: (token: AppleBuyToken) => Promise<AppleQuoteResult>,
@@ -73,24 +98,35 @@ export async function selectAppleIssuer(
   evidence: AppleIssuerEvidence = {},
 ): Promise<{ quotes: AppleQuoteResult[]; selection: AppleIssuerSelection }> {
   const beforeFetch = now();
-  const eligible = apple.issuerTokens.filter(eligibleIssuer)
-    .filter((token) => productEligibility(evidence[token], beforeFetch) !== "restricted");
-  const quotes = await Promise.all(eligible.map(getQuote));
-  const current = now();
-  const candidates: AppleIssuerEvaluation[] = [];
-  const comparable: Comparable[] = [];
+  const requested: AppleBuyToken[] = [];
+  const excluded = new Map<AppleIssuerToken, Extract<AppleIssuerEvaluation, { status: "excluded" }>["reason"]>();
 
   for (const token of apple.issuerTokens) {
-    if (!eligibleIssuer(token)) {
-      candidates.push({ token, status: "excluded", reason: "UNSUPPORTED_SOLANA" });
-      continue;
+    const attestation = token === "AAPLB" ? undefined : evidence[token];
+    const eligibility = evaluatePurchaseEligibility(contextFor(token, attestation), beforeFetch, attestation?.eligibility);
+    if (eligibility.reason === "ISSUER_RESTRICTS_INDONESIA") {
+      excluded.set(token, "JURISDICTION_RESTRICTED");
+    } else if (eligibility.status === "RESTRICTED" || productFor(token)?.halted) {
+      excluded.set(token, "PRODUCT_RESTRICTED");
+    } else if (supportsApplePreview(token)) {
+      requested.push(token);
+    } else {
+      excluded.set(token, "UNSUPPORTED_SOLANA");
     }
-    if (!eligible.includes(token) || productEligibility(evidence[token], current) === "restricted") {
-      candidates.push({ token, status: "excluded", reason: "PRODUCT_RESTRICTED" });
-      continue;
-    }
+  }
 
-    const quote = quotes.find((item) => item.token === token);
+  const quotes = await Promise.all(requested.map(getQuote));
+  const current = now();
+  const candidates: AppleIssuerEvaluation[] = [];
+  const offers: PurchaseOffer[] = [];
+
+  for (const token of apple.issuerTokens) {
+    const reason = excluded.get(token);
+    if (reason || token === "AAPLB") {
+      candidates.push({ token, status: "excluded", reason: reason ?? "UPSTREAM_ERROR" });
+      continue;
+    }
+    const quote = quotes.find(item => item.token === token);
     if (!quote || quote.status === "unavailable") {
       candidates.push({ token, status: "excluded", reason: quote?.code ?? "UPSTREAM_ERROR" });
       continue;
@@ -100,53 +136,69 @@ export async function selectAppleIssuer(
       continue;
     }
 
-    const eligibility = productEligibility(evidence[token], current);
-    const exposure = verifiedExposure(quote, evidence[token], current);
-    const cost = totalIdrxCost(amount, quote, evidence[token]);
+    const route = applePreviewRoute(token, quote.quoteId, quote.router);
+    const attestation = evidence[token];
+    const context = contextFor(token, attestation, route);
+    const eligibility = evaluatePurchaseEligibility(context, current, attestation?.eligibility);
+    if (eligibility.status === "RESTRICTED") {
+      candidates.push({ token, status: "excluded", reason: "PRODUCT_RESTRICTED" });
+      continue;
+    }
+
+    const exposure = verifiedExposure(context, attestation, current);
+    const quoteCosts = attestation?.quoteCosts;
+    const verifiedCosts = quoteCosts && quoteCosts.routeKey === context.routeKey && quoteCosts.expiresAt > current ? quoteCosts : null;
+    const cost = verifiedCosts ? totalIdrxCost(amount, quote) : null;
     const output = BigInt(quote.output.amountAtomic);
     const minimum = BigInt(quote.minimumOutputAtomic);
     const gaps: IssuerComparisonGap[] = [];
-    if (eligibility !== "verified") gaps.push("ELIGIBILITY_UNVERIFIED");
+    if (eligibility.status !== "ELIGIBLE") gaps.push("ELIGIBILITY_UNVERIFIED");
     if (!exposure) gaps.push("EXPOSURE_UNVERIFIED");
     if (cost === null || minimum === 0n) gaps.push("COST_INCOMPLETE");
-    const candidate: Quotable = {
-      token, status: "quotable", quoteId: quote.quoteId, gaps,
-      productEligibility: eligibility === "verified" ? "verified" : "unverified",
-      receiveBufferBps: Number((output - minimum) * 10_000n / output),
-    };
-    candidates.push(candidate);
-
-    if (exposure && cost !== null && minimum > 0n) {
-      const numerator = cost * BigInt(exposure.sharesDenominator) * 10n ** BigInt(quote.output.decimals);
-      const sharesPerToken = BigInt(exposure.sharesNumerator);
-      const estimated = { numerator, denominator: output * sharesPerToken };
-      const atMinimum = { numerator, denominator: minimum * sharesPerToken };
-      comparable.push({ candidate, group: exposure.equivalenceGroup, estimated, atMinimum });
+    if (cost !== null && cost > BigInt(amount)) gaps.push("BUDGET_EXCEEDED");
+    if (verifiedCosts && verifiedCosts.priceImpactBps > verifiedCosts.maxPriceImpactBps) {
+      gaps.push("PRICE_IMPACT_EXCEEDED");
     }
+    candidates.push({
+      token, status: "quotable", quoteId: quote.quoteId, gaps,
+      productEligibility: eligibility.status === "ELIGIBLE" ? "verified" : "unverified",
+      receiveBufferBps: Number((output - minimum) * 10_000n / output),
+    });
+    offers.push({
+      route, eligibility: eligibility.status, budget: { unit: "IDRX", amountAtomic: amount },
+      economics: exposure && verifiedCosts && cost !== null ? {
+        totalCostAtomic: cost.toString(),
+        outputAtomic: quote.output.amountAtomic, minimumAtomic: quote.minimumOutputAtomic, outputDecimals: quote.output.decimals,
+        priceImpactBps: verifiedCosts.priceImpactBps, maxPriceImpactBps: verifiedCosts.maxPriceImpactBps,
+        issuerExposure: { instrument: appleIsin, equivalenceGroup: exposure.equivalenceGroup,
+          numerator: exposure.sharesNumerator, denominator: exposure.sharesDenominator },
+      } : null,
+    });
   }
 
   const quotable = candidates.filter((candidate): candidate is Quotable => candidate.status === "quotable");
+  const shownQuotes = quotes.filter(quote => !candidates.some(candidate =>
+    candidate.token === quote.token && candidate.status === "excluded" && candidate.reason === "PRODUCT_RESTRICTED"
+  ));
   const unavailable = (reason: Extract<AppleIssuerSelection["decision"], { status: "unavailable" }>["reason"]) =>
-    ({ quotes, selection: { candidates, decision: { status: "unavailable", reason } } }) as const;
+    ({ quotes: shownQuotes, selection: { candidates, decision: { status: "unavailable", reason } } }) as const;
   if (quotable.length === 0) return unavailable("NO_FRESH_ROUTES");
   if (quotable.length === 1) {
     const [{ token, quoteId }] = quotable;
-    return { quotes, selection: { candidates, decision: { status: "only_quotable", token, quoteId, reason: "ONLY_FRESH_ROUTE" } } };
+    return { quotes: shownQuotes, selection: { candidates, decision: { status: "only_quotable", token, quoteId, reason: "ONLY_FRESH_ROUTE" } } };
   }
-  if (comparable.length !== quotable.length || quotable.some((candidate) => candidate.gaps.length)) {
-    return unavailable("MISSING_COMPARISON_DATA");
+
+  const ranking = rankPurchaseOffers(offers);
+  for (const { offer, estimated, atMinimum } of ranking.compared) {
+    const candidate = quotable.find(entry => entry.quoteId === offer.route.id && issuerNames[entry.token] === offer.route.issuer);
+    if (candidate) candidate.costPerShare = { estimated: formatIdrx(estimated), atMinimumReceived: formatIdrx(atMinimum) };
   }
-  if (!comparable.every((entry) => entry.group === comparable[0].group)) return unavailable("INCOMPARABLE_PRODUCTS");
-  for (const { candidate, estimated, atMinimum } of comparable) {
-    candidate.costPerShare = { estimated: formatIdrx(estimated), atMinimumReceived: formatIdrx(atMinimum) };
-  }
-  comparable.sort((a, b) => compare(a.estimated, b.estimated));
-  const [best, runnerUp] = comparable;
-  if (compare(best.estimated, runnerUp.estimated) === 0) return unavailable("COST_TIE");
-  if (compare(best.atMinimum, runnerUp.estimated) >= 0) return unavailable("COST_RANGES_OVERLAP");
-  const { token, quoteId } = best.candidate;
+  if (ranking.status === "unavailable") return unavailable(ranking.reason);
+  const winner = quotable.find(candidate =>
+    candidate.quoteId === ranking.winner.id && issuerNames[candidate.token] === ranking.winner.issuer);
+  if (!winner) return unavailable("MISSING_COMPARISON_DATA");
   return {
-    quotes,
-    selection: { candidates, decision: { status: "recommended", token, quoteId, reason: "LOWEST_VERIFIED_EXECUTION_COST" } },
+    quotes: shownQuotes, selection: { candidates, decision: { status: "recommended", token: winner.token,
+      quoteId: winner.quoteId, route: ranking.winner, reason: "LOWEST_VERIFIED_EXECUTION_COST" } },
   };
 }

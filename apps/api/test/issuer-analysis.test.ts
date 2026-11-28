@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { AppleQuotesResponse } from "@1stocks/shared";
+import { applePreviewRoute } from "../src/issuer-selection";
 import { explainIssuers, parseExplanation } from "../src/issuer-analysis";
 
 function sample(expiresAt: string): AppleQuotesResponse {
@@ -10,6 +11,7 @@ function sample(expiresAt: string): AppleQuotesResponse {
     quotes: [{
       status: "quoted", token: "AAPLx", quoteId: "test",
       fetchedAt: new Date().toISOString(), expiresAt, router: null,
+      route: applePreviewRoute("AAPLx", "test", null),
       output: { symbol: "AAPLx", mint: "unused", amountAtomic: "11", decimals: 8 },
       minimumOutputAtomic: "10", idrxPerToken: "0", feeCosts: [], gasCosts: [],
     }],
@@ -44,12 +46,27 @@ test("allows citations to official catalog entries with their network restrictio
   const data = sample(new Date(Date.now() + 60_000).toISOString());
   const request: typeof fetch = async (_url, options) => {
     const payload = JSON.parse(String(options?.body));
-    const catalog = JSON.parse(payload.input).officialCatalog;
+    const input = JSON.parse(payload.input);
+    const policy = input.issuerPolicies.find((item: { id: string }) => item.id === "policy-bstocks");
+    assert.equal(policy.jurisdiction, "ID");
+    assert.equal(policy.status, "RESTRICTED");
+    assert.equal(input.routeEvidence[0].kind, "same-chain");
+    assert.equal(input.routeEvidence[0].provider, "LI.FI");
+    assert.equal(input.routeEvidence[0].mode, "quote-only");
+    const catalog = input.officialCatalog;
     const bstocks = catalog.find((item: { id: string }) => item.id === "catalog-bstocks");
     assert.equal(bstocks.symbol, "AAPLB");
     assert.ok(["unsupported-chain", "stale"].includes(bstocks.status));
     assert.equal(bstocks.deployments[0].chain, "eip155:56");
-    assert.ok(payload.text.format.schema.properties.points.items.properties.evidence.items.enum.includes(bstocks.id));
+    const points = payload.text.format.schema.properties.points;
+    assert.equal(points.minItems, 1);
+    assert.equal(points.maxItems, 3);
+    const citations = points.items.properties.evidence;
+    assert.equal(citations.minItems, 1);
+    assert.equal(citations.maxItems, 3);
+    assert.ok(citations.items.enum.includes(bstocks.id));
+    assert.ok(citations.items.enum.includes("policy-bstocks"));
+    assert.ok(citations.items.enum.includes("route-AAPLx"));
     return Response.json({ status: "completed", output: [{ type: "message", content: [{
       type: "output_text",
       text: JSON.stringify({ points: [{ text: "AAPLB tersedia di jaringan BNB.", evidence: [bstocks.id] }] }),

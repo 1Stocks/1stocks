@@ -12,6 +12,7 @@ import { SignInControl } from "../../wallet/account";
 import { useWalletSession } from "../../wallet/session";
 import { canPreviewApple } from "../../wallet/session-policy";
 import { IssuerAnalysis } from "./issuer-analysis";
+import { AppleMultichainComparison } from "./multichain-comparison";
 import styles from "./preview.module.css";
 
 const presets = [
@@ -47,12 +48,14 @@ const gapLabels = {
   ELIGIBILITY_UNVERIFIED: "Kelayakan pengguna belum diverifikasi",
   EXPOSURE_UNVERIFIED: "Normalisasi eksposur belum terverifikasi",
   COST_INCOMPLETE: "Biaya total dalam IDRX belum terverifikasi",
+  BUDGET_EXCEEDED: "Biaya total melebihi nominal",
+  PRICE_IMPACT_EXCEEDED: "Dampak harga melebihi batas",
 };
 
 function describeDecision(decision: AppleIssuerSelection["decision"]) {
   if (decision.status === "recommended") return {
     title: "Rekomendasi untuk nominal ini",
-    detail: "Biaya untuk eksposur yang setara lebih rendah, termasuk pada batas minimum diterima.",
+    detail: "Dipilih dari penawaran dengan kelayakan, eksposur, dan biaya dalam anggaran yang terverifikasi.",
   };
   if (decision.status === "only_quotable") return {
     title: "Satu penawaran tersedia",
@@ -70,7 +73,8 @@ function describeDecision(decision: AppleIssuerSelection["decision"]) {
 
 function explainExclusion(reason: Extract<AppleIssuerEvaluation, { status: "excluded" }>["reason"]) {
   switch (reason) {
-    case "UNSUPPORTED_SOLANA": return "Di luar cakupan demo. AAPLB tidak terdaftar pada Solana untuk 1Stocks.";
+    case "UNSUPPORTED_SOLANA": return "Deployment ini belum didukung oleh adapter pratinjau.";
+    case "JURISDICTION_RESTRICTED": return "Penerbit membatasi akses AAPLB untuk pengguna Indonesia.";
     case "PRODUCT_RESTRICTED": return "Ketentuan penerbit mengecualikan produk ini untuk profil pengguna.";
     case "QUOTE_EXPIRED": return "Estimasi kedaluwarsa.";
     default: return quoteErrors[reason];
@@ -216,6 +220,10 @@ function ApplePurchase({ canQuote }: { canQuote: boolean }) {
       if (quote.status !== "quoted") return [];
       return [window.setTimeout(() => setQuoteNow(Date.now()), Math.max(0, Date.parse(quote.expiresAt) - Date.now() + 5))];
     });
+    const multichainExpiry = activeSet.data.multichain?.benchmark?.expiresAt;
+    if (multichainExpiry) {
+      timers.push(window.setTimeout(() => setQuoteNow(Date.now()), Math.max(0, Date.parse(multichainExpiry) - Date.now() + 5)));
+    }
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [activeSet]);
 
@@ -329,7 +337,7 @@ function ApplePurchase({ canQuote }: { canQuote: boolean }) {
               <dl className="grid gap-3 text-sm sm:grid-cols-3">
                 <div><dt className="text-landing-muted">Saham acuan</dt><dd>Apple Inc. (AAPL)</dd></div>
                 <div><dt className="text-landing-muted">Produk yang dievaluasi</dt><dd>AAPLx dan AAPLon</dd></div>
-                <div><dt className="text-landing-muted">Produk di luar cakupan</dt><dd>AAPLB</dd></div>
+                <div><dt className="text-landing-muted">Dibatasi untuk Indonesia</dt><dd>AAPLB</dd></div>
               </dl>
             </section>
           </div>
@@ -451,8 +459,10 @@ function ApplePurchase({ canQuote }: { canQuote: boolean }) {
               }}>Tinjau estimasi</button>
             </div>
           </div>
+          {comparison.set.data.multichain &&
+            <AppleMultichainComparison preview={comparison.set.data.multichain} now={quoteNow} />}
           <IssuerTerms set={comparison.set} />
-          <IssuerAnalysis key={comparison.set.data.quotes.map(quote => quote.status === "quoted" ? quote.quoteId : quote.token).join(":")} amount={comparison.set.amount} />
+          <IssuerAnalysis key={comparison.set.data.quotes.map(quote => quote.status === "quoted" ? quote.quoteId : quote.token).join(":") + (comparison.set.data.multichain?.benchmark?.fetchedAt ?? "")} amount={comparison.set.amount} />
         </section>
     )}
 

@@ -7,6 +7,10 @@ export function appleQuoteService() {
   if (service) return service;
   const fromAddress = process.env.LIFI_QUOTE_FROM_ADDRESS?.trim() ?? "";
   if (!isSolanaPublicAddress(fromAddress)) return undefined;
-  service = createAppleQuoteService({ fromAddress, apiKey: process.env.LIFI_API_KEY?.trim() });
+  service = createAppleQuoteService({
+    fromAddress,
+    apiKey: process.env.LIFI_API_KEY?.trim(),
+    multichainPreview: process.env.APPLE_MULTICHAIN_QUOTE_PREVIEW === "true",
+  });
   return service;
 }

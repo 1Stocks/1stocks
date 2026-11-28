@@ -13,6 +13,7 @@ export type WalletSession =
   | {
       status: "signed-in";
       userId: string;
+      getAccessToken: () => Promise<string | null>;
       google?: { name: string | null; email: string };
       wallet: Wallet;
       logout: () => void;
