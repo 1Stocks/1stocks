@@ -1,19 +1,29 @@
 # 1Stocks
 
-1Stocks dirancang untuk memudahkan investor ritel Indonesia membeli token saham dengan rupiah. Pengguna memilih saham dan memasukkan nominal rupiah. 1Stocks menangani pemilihan token dan swap di belakang layar, lalu token masuk ke dompet pengguna. Pengguna tidak perlu mengatur wallet kripto, membeli token untuk gas, atau menukar rupiah ke USDC sendiri.
+1Stocks adalah agregator saham tertokenisasi untuk investor ritel Indonesia. Aplikasi menyatukan produk dari beberapa penerbit dan jaringan, dengan penjelasan AI opsional berdasarkan kuotasi dan dokumen penerbit.
 
-## Scope MVP
+## Kemampuan saat ini
 
-1. Peragakan alur pembelian Apple di web desktop, mulai dari nominal rupiah, estimasi, dan konfirmasi hingga hasil swap demo.
-2. Gunakan agregator di backend untuk mengevaluasi penawaran token Apple dan menentukan token yang digunakan.
-3. Setelah agregasi dan swap siap, sederhanakan onboarding dengan rencana login Google dan dompet otomatis.
+- Pasar menampilkan katalog aset resmi dari xStocks, Ondo, dan bStocks. Detail menampilkan jaringan, alamat, dan sumber tiap produk.
+- Pratinjau Apple membandingkan kuotasi LI.FI untuk AAPLx dan AAPLon di Solana mainnet. Masukkan nominal rupiah, bandingkan hasil, lalu tinjau pratinjau. AAPLB tercatat di BNB Chain. Kuotasi pada aplikasi saat ini terbatas pada dua mint Apple di Solana.
+- Privy menyediakan login Google dan embedded wallet Solana jika dikonfigurasi. Portofolio membaca saldo AAPLx dan AAPLon dari Solana mainnet. Saldo SOL devnet tampil secara terpisah.
+- Demo devnet berisi transfer SPL dengan aset uji dan persetujuan pengguna. Pembayaran rupiah, pembelian mainnet, dan eksekusi lintas chain masih dalam tahap rencana.
 
-## Rencana teknis demo
+## Pengembangan lokal
 
-- **Solana** adalah jaringan utama. **BNB Chain** disimpan sebagai opsi cadangan.
-- Harga atau quote ditargetkan berasal dari **Solana mainnet** setelah sumber dan rute token diverifikasi.
-- Swap demo ditargetkan berjalan di **Solana devnet** dengan aset uji resmi yang kompatibel dan terverifikasi. Gunakan mint demo hanya untuk aset yang dibutuhkan tetapi belum tersedia. Jika adapter memakai hop USDC, gunakan USDC uji resmi Circle. Jika rute uji belum siap, backend dapat menjalankan simulasi berlabel di UI.
+Gunakan Node.js 22 atau versi yang kompatibel, lalu jalankan:
 
-## Alur kontribusi
+```bash
+npm ci
+npm run dev
+```
 
-Gunakan satu branch dan satu pull request per tiket. Rocket meriview PR, lalu Geral melakukan merge ke `main`.
+Buka [localhost:3000](http://localhost:3000) atau langsung [pratinjau Apple](http://localhost:3000/saham/apple). Gunakan [contoh konfigurasi](apps/web/.env.example) dan [panduan AI serta demo devnet](apps/web/DEMO-SETUP.md) untuk layanan opsional. Jalankan `npm run check` untuk lint, tes, typecheck, dan production build.
+
+## Arsitektur dan kontribusi
+
+- [Arsitektur, jaringan, dan batas implementasi](docs/architecture/tokenized-equities.md)
+- [Usulan ADR 0002 tentang ekspansi multichain](docs/adr/0002-solana-first-dan-ekspansi-multichain.md)
+- [Workspace operator Solana](contracts/solana/README.md)
+
+Gunakan satu branch dan satu pull request per perubahan untuk review tim.
