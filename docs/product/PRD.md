@@ -4,39 +4,39 @@ Draf untuk review tim · 28 November 2026
 
 ## Tujuan produk
 
-1Stocks membantu investor ritel membandingkan representasi saham tertokenisasi dari beberapa penerbit dan jaringan. Indonesia menjadi pasar awal, dengan nominal investasi dalam rupiah. Produk ditujukan untuk ritel di berbagai negara, dengan akses yang ditentukan per yurisdiksi.
+1Stocks membantu investor ritel mendapatkan eksposur ke saham tertokenisasi melalui satu alur yang berpusat pada saham acuan. Produk membandingkan penawaran lintas penerbit dan jaringan. Visinya melayani ritel global, dengan Indonesia sebagai pasar awal dan Apple sebagai alur MVP desktop.
 
-Pengguna ingin tahu pilihan yang tersedia untuk mendapatkan eksposur ke saham Apple dengan anggaran tertentu. 1Stocks menunjukkan penerbit, hak pemegang yang dapat diverifikasi, biaya yang diketahui, estimasi hasil, dan pembatasan tiap pilihan. Analisis AI membantu menjelaskan perbedaan berdasarkan bukti yang tersedia.
+Pengguna cukup memilih saham, memasukkan nominal rupiah, dan meninjau penawaran. Aplikasi menangani penemuan produk, pemilihan rute, dan kebutuhan wallet di balik layar. Penerbit, jaringan, biaya, serta risiko tetap tersedia saat pengguna meninjau hasil.
 
-## Alur MVP
+## Alur pengguna MVP
 
 ```mermaid
 flowchart LR
-    A["Cari Apple"] --> B["Masukkan nominal IDR"]
-    B --> C["Lihat penerbit dan kuotasi"]
-    C --> D["Tinjau dan selesaikan pratinjau"]
+    A["Masuk dengan Google"] --> B["Pilih Apple dan isi nominal IDR"]
+    B --> C["Tinjau penawaran dan analisis AI"]
+    C --> D["Setujui transaksi demo"]
+    D --> E["Terima aset uji dan lihat buktinya"]
+    E --> F["Coba alur jual dan keluar dalam mode demo"]
 ```
 
-1. **Cari Apple.** Pengguna membuka Pasar atau halaman Apple dan melihat produk dari xStocks, Ondo, dan bStocks. AAPLB tampil dengan peringatan **“Dibatasi untuk Indonesia. Informasi saja.”** Kuotasi, peringkat, dan pembelian AAPLB dikecualikan untuk pengguna Indonesia. [Bukti kelayakan penerbit](../architecture/eligibility-evidence.md)
-2. **Masukkan nominal IDR.** Aplikasi mempertahankan nominal pengguna sebagai dasar pratinjau. Kuotasi baca-saja yang didukung saat ini berasal dari LI.FI untuk AAPLx dan AAPLon di Solana.
-3. **Bandingkan penawaran.** Tampilkan estimasi, minimum output, biaya yang tersedia, masa berlaku, dan kondisi pendanaan. Beri peringkat hanya jika sumber dana, biaya, dan eksposur saham dapat dibandingkan. Jika bukti kurang, tampilkan skenario secara terpisah beserta alasannya.
-4. **Tinjau dan selesaikan pratinjau.** Pengguna dapat mengikuti alur sebagai tamu. Analisis opsional menggunakan sesi Google melalui Privy jika konfigurasi tersedia. Penjelasan AI merujuk bukti, sedangkan kelayakan, kalkulasi, dan peringkat ditentukan aturan aplikasi. Hasil akhirnya adalah ringkasan pratinjau tanpa tanda tangan atau transaksi.
+1. **Masuk dan siapkan wallet.** Pengguna masuk dengan Google melalui Privy. Aplikasi menyiapkan atau memulihkan embedded wallet. Pengguna dapat menjelajah dan melihat kuotasi sebelum login.
+2. **Pilih Apple dan masukkan rupiah.** Backend meminta kuotasi LI.FI baca-saja untuk AAPLx dan AAPLon yang tersedia. Pengguna tidak perlu memilih simbol token, stablecoin, jaringan, atau gas secara manual. AAPLB tetap tampil dengan label **“Dibatasi untuk Indonesia. Informasi saja.”** Sistem mengecualikannya dari kuotasi, peringkat, dan pembelian. [Bukti kelayakan penerbit](../architecture/eligibility-evidence.md)
+3. **Tinjau penawaran dan analisis.** Ringkasan menunjukkan estimasi, minimum output, biaya yang diketahui, dan masa berlaku. AI menjelaskan perbedaan penerbit, hak ekonomi seperti dividen, aset pendukung, dan risiko rute ketika tersedia bukti. Aturan server menentukan kelayakan dan peringkat. Jika biaya, pendanaan, atau eksposur belum sebanding, tampilkan alternatif dan alasan tanpa menetapkan pemenang.
+4. **Otorisasi transaksi demo.** Pengguna melihat bahwa pendanaan rupiah disimulasikan dan asetnya adalah token uji. Setelah persetujuan, alur demo menyelesaikan pertukaran aset uji di testnet publik. Aplikasi menampilkan status, saldo aktual, dan tautan transaksi di explorer.
+5. **Coba jual dan keluar.** Pengguna dapat menjalankan arah jual dengan aset demo. Hasil akhir menampilkan nilai rupiah simulasi dan status penyelesaian aset uji.
 
-## Batas Demo Day dan produk selanjutnya
+## Kriteria penerimaan Demo Day
 
-- **Demo Day.** Tunjukkan alur Apple sampai pratinjau. Kuotasi lintas jaringan yang tersedia di lingkungan uji tetap berlabel indikatif. Transfer SPL devnet dapat didemokan terpisah sebagai transfer aset uji. Alur login Google sampai pemulihan wallet perlu diverifikasi dengan akun demo.
-- **Produksi.** Setelah izin distribusi, syarat penerbit, kelayakan pengguna, pendanaan, dan kesiapan rute terbukti, pengguna dapat meninjau transaksi, mengotorisasinya, lalu melihat status penyelesaian, saldo, dan riwayat. Pembelian produksi dan setoran rupiah tetap nonaktif selama prasyaratnya belum terpenuhi.
-- **Batas produk.** 1Stocks mengagregasi produk dari penerbit yang terverifikasi. Penerbitan token saham, DEX, dan bridge milik 1Stocks berada di luar cakupan.
+| Fitur | Bukti bahwa alur berjalan |
+| --- | --- |
+| Katalog dan kuotasi live | Pembelian dimulai dari Apple dan nominal IDR. Backend memperoleh kuotasi dari dua penerbit yang didukung serta menangani hasil kosong atau kedaluwarsa. AAPLB terlihat dengan peringatan. |
+| Analisis AI | Model live menjelaskan bukti yang dipakai. Ketiadaan data harga, likuiditas, hak, atau cadangan ditampilkan sebagai keterbatasan. Ketika AI gagal, kuotasi masih dapat ditinjau. |
+| Google dan wallet | Login kembali ke aplikasi. Alamat embedded wallet tersedia dan tetap sama setelah pemulihan sesi. Logout menutup akses fitur berautentikasi. |
+| Masuk dan keluar dana versi demo | Pengguna dapat memulai dari nominal rupiah simulasi dan melihat hasil jual dalam rupiah simulasi. UI memberi label demo sepanjang alur. |
+| Pertukaran aset uji | Pengguna mengotorisasi arah beli dan jual. Kedua arah memiliki bukti testnet yang cocok dengan saldo aset sumber dan hasil. Transfer SPL tunggal oleh operator, simulasi, atau pratinjau hanya membuktikan tahap masing-masing. |
 
-## Kriteria penerimaan MVP
+## Batas demo dan produksi
 
-- Pengguna dapat menemukan Apple, memasukkan nominal IDR, dan meninjau kuotasi AAPLx serta AAPLon ketika tersedia.
-- AAPLB tetap terlihat dengan peringatan dan tidak dapat dipilih untuk kuotasi, peringkat, atau pembelian di Indonesia.
-- Kuotasi kosong atau kedaluwarsa menampilkan alasan dan pilihan penyegaran. Data yang belum sebanding tidak menghasilkan pemenang.
-- Pengguna dapat menyelesaikan pratinjau ketika AI atau login tidak tersedia. Halaman hasil menjelaskan bahwa belum ada transaksi.
+Kuotasi mainnet memakai akses baca-saja. Pertukaran demo memakai aset uji yang terpisah dari token saham resmi. Setoran dan penarikan rupiah nyata, eksekusi mainnet, dan akses produksi menunggu izin distribusi, kelayakan pengguna, pendanaan, dan rute yang terverifikasi. 1Stocks tidak menerbitkan token saham produksi atau membangun DEX dan bridge sendiri.
 
-## Keputusan untuk review tim
-
-1. Sepakati bahwa hasil Demo Day adalah pratinjau Apple. Verifikasi wallet dan transfer devnet punya bukti terpisah.
-2. Tentukan jalur distribusi dan pendanaan IDR yang perlu divalidasi sebelum mendesain pembelian produksi.
-3. Putuskan kapan perbandingan lintas jaringan layak dibuka ke pengguna berdasarkan [usulan ADR 0002](../adr/0002-seleksi-produk-lintas-jaringan.md).
+Target ini belum terpenuhi seluruhnya. Laporan yang tersedia mencatat kuotasi LI.FI, analisis OpenAI live, dan transfer devnet oleh operator. Login Google hingga pemulihan wallet serta pertukaran aset uji dua arah yang diotorisasi pengguna masih perlu dibuktikan. [Bukti verifikasi yang dilaporkan](https://github.com/1Stocks/1stocks/blob/6482457ecb0ee19c9a490475e9584bc51b6e61b2/docs/architecture/apple-mvp-verification.md)
