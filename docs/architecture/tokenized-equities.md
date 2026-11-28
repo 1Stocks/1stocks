@@ -13,7 +13,7 @@ Penemuan aset → kelayakan → agregasi kuotasi lintas jaringan → peringkat d
 
 ## Sistem saat ini dan target
 
-Next.js menyediakan UI dan route handler. Katalog memakai snapshot sumber penerbit. Backend LI.FI memberi kuotasi Apple yang dibatasi ke Solana. Mesin seleksi membandingkan kuotasi berdasarkan aturan tetap. OpenAI menyusun penjelasan opsional berdasarkan bukti. Privy mengelola login dan embedded wallet Solana. RPC membaca saldo resmi Apple untuk alamat wallet dan saldo SOL devnet secara terpisah. Produk baru memerlukan pemeriksaan deployment serta rute masing-masing.
+Next.js menyediakan UI dan route handler. Katalog memakai snapshot sumber penerbit. Secara default, backend LI.FI memberi pratinjau Apple di Solana. Lingkungan uji opt-in menambahkan estimasi multichain. Mesin seleksi membandingkan kuotasi berdasarkan aturan tetap. OpenAI menyusun penjelasan opsional berdasarkan bukti. Privy mengelola login dan embedded wallet Solana. RPC membaca saldo resmi Apple untuk alamat wallet dan saldo SOL devnet secara terpisah. Produk baru memerlukan pemeriksaan deployment serta rute masing-masing.
 
 ```mermaid
 flowchart LR
@@ -108,6 +108,23 @@ flowchart TD
 
 Diagram rute menggambarkan desain target. Chain yang dipakai mengikuti kualitas dan kelayakan penawaran. Jumlah kandidat dari penyedia tidak menjadi ukuran kualitas. Eksekusi Solana dan EVM dapat menggunakan antarmuka bisnis yang sama untuk penawaran dan hasil. Implementasi chain tetap memisahkan program token, allowance EVM, penandatanganan, gas, finality, dan explorer. Penambahan dompet EVM, trade EVM, dan cross-chain menunggu keputusan ADR 0002.
 
+## Pratinjau multichain dan batas bukti
+
+Adapter read-only berjalan saat `APPLE_MULTICHAIN_QUOTE_PREVIEW=true` diaktifkan server lingkungan uji. Pratinjau default tetap Solana. Route handler membaca nominal IDRX, meminta kuotasi konversi IDRX → USDC Solana, lalu memakai minimum hasil sebagai batas patokan. Untuk nilai minimal 1 USDC, patokan indikatif dibulatkan turun ke unit USDC utuh dan ditampilkan bersama minimum konversi. Nominal pratinjau IDRX dasar tetap utuh. Setiap rute dalam pengujian menerima nominal USDC yang sama dalam unit atomik deployment sumbernya.
+
+- **Skenario dari Solana.** USDC Solana memberi kondisi awal yang sama untuk kuotasi Solana dan rute lintas chain yang tersedia. Asumsi ini mengikuti sumber konversi acuan dan tidak menentukan peringkat chain.
+- **Skenario dana sudah tersedia.** Jika LI.FI mengembalikan tanpa rute dari sumber acuan, server dapat meminta kuotasi dengan USDC Ethereum atau Binance-Peg USDC BNB yang sudah tersedia di jaringan tujuan. Kedua sumber diberi label tersendiri. Binance-Peg USDC tetap unit berbeda dengan Circle USDC. Perbandingan atas biaya mendapatkan dana di jaringan lain belum tersedia. [Kontrak USDC Circle](https://developers.circle.com/stablecoins/usdc-contract-addresses) · [Alamat USDC BNB dari Binance](https://www.binance.com/en-UZ/skills/detail/binance-web3/binance-agentic-wallet)
+- **Kuotasi.** Hanya respons LI.FI yang cocok dengan chain, kontrak, desimal, nominal, jalur langkah, dan batas minimum yang masuk ke pratinjau. Data fee yang malformat atau hilang memicu label biaya sebagian. Parser membaca biaya langkah luar agar baris biaya yang berulang pada sublangkah tidak dihitung ulang. Estimasi provider belum membuktikan biaya approval, rent, bridge lanjutan, konversi, atau harga eksekusi. Batas berlaku 25 detik sejak pengambilan acuan. Cache singkat per jumlah, batas permintaan paralel, dan cooldown 429 juga berlaku untuk layanan kuotasi.
+- **Biaya dan eksposur.** Peringkat produksi memerlukan seluruh bukti kelayakan, anggaran all-in dalam unit sama, biaya terkonversi yang terikat ke rute, dampak harga, serta rasio saham per token yang masih berlaku. Desimal sudah diperiksa. Rasio eksposur dan perbedaan representasi raw/scaled per penerbit dan deployment belum terverifikasi untuk seluruh rute. UI membandingkan kuotasi token mentah dalam unit token masing-masing dan menahan peringkat lintas chain. Selisih valuasi provider dan selisih minimum tidak dianggap sebagai dampak harga. [xStocks, multiplier](https://docs.xstocks.fi/developers/multipliers) · [Ondo, corporate actions](https://docs.ondo.finance/ondo-stocks/corporate-actions)
+- **Otorisasi bukti.** Penerbit, lisensi distribusi, verifikasi investor, dan kesiapan rute memerlukan sumber backend yang diotorisasi. Bukti harus mencatat sumber HTTPS, waktu verifikasi, waktu kedaluwarsa, dan cakupan yurisdiksi serta deployment. Cakupan investor juga mengikat identitas dan wallet. Cakupan teknis mengikat wallet, provider, rute, serta aset dan chain sumber maupun tujuan. Kedua endpoint hanya menerima nominal sebagai masukan finansial. Sesi Privy diverifikasi di server untuk akses AI. Input browser, payload AI, daftar aset, dan laporan rute tidak menyuplai attestasi produksi. Belum ada integrasi sumber otorisasi produksi, sehingga pratinjau multichain berstatus UNKNOWN.
+- **Persetujuan tim.** ADR 0002 masih usulan. Aktifkan flag hanya dalam uji terisolasi sampai tim menyepakati rollout. Fitur ini tidak menyiapkan atau menandatangani transaksi dari UI. Diagnosis baca-saja dan hasil pemeriksaan akun ada di [catatan simulasi Solana](apple-solana-simulation.md).
+
+### Hasil uji adapter
+
+HTTP lokal dengan nominal Rp200.000 mengembalikan kelima penawaran dengan patokan 10 USDC. AAPLx dan AAPLon menggunakan rute satu jaringan di Solana. AAPLx Ethereum memakai USDC yang sudah tersedia di Ethereum setelah LI.FI tidak mengembalikan rute dari Solana. AAPLon Ethereum dan BNB memakai rute lintas jaringan dari USDC Solana. Respons aplikasi tetap berstatus kelayakan produksi UNKNOWN. Permintaan dengan flag nonaktif hanya memuat kuotasi Apple Solana yang sudah ada.
+
+RPC Ethereum dan BNB mengonfirmasi desimal 18 untuk kontrak Apple yang diuji pada kedua jaringan. USDC Ethereum memiliki 6 desimal dan Binance-Peg USDC BNB memiliki 18 desimal. Pengujian juga menemukan bahwa LI.FI dapat mengembalikan rute AAPLx Ethereum untuk 10 USDC dan nol rute pada nominal dekat 10 USDC lain. Temuan itu berlaku pada saat pemeriksaan. Rute yang sama dapat berubah atau hilang pada permintaan berikutnya.
+
 ## AI dan seleksi
 
 ```mermaid
@@ -131,8 +148,8 @@ Seleksi menyaring produk yang dibatasi dan rute yang belum memenuhi syarat, lalu
 | Jaringan | Katalog Apple | Kuotasi tersedia di aplikasi | Eksekusi aplikasi |
 | --- | --- | --- | --- |
 | Solana mainnet | AAPLx dan AAPLon | LI.FI quote-only | Pratinjau |
-| Ethereum mainnet | AAPLx dan AAPLon | Audit rute di luar aplikasi | Belum aktif |
-| BNB Smart Chain mainnet | AAPLx, AAPLon, AAPLB | Audit rute di luar aplikasi | Belum aktif |
+| Ethereum mainnet | AAPLx dan AAPLon | Pratinjau indikatif jika flag uji aktif dan rute tersedia | Belum aktif |
+| BNB Smart Chain mainnet | AAPLx, AAPLon, AAPLB | AAPLon indikatif jika flag uji aktif dan rute tersedia. AAPLB dibatasi. | Belum aktif |
 | Solana devnet | Registry demo terpisah | Transfer demo tanpa kuotasi DEX devnet | Transfer SPL dengan persetujuan dan konfigurasi |
 | Validator lokal | Fixture operator | Pengujian terisolasi | Transfer uji |
 | Jaringan snapshot lain | Katalog | Belum aktif | Belum aktif |
