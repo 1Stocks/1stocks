@@ -10,10 +10,10 @@ Status: arah paket inti disetujui pengguna untuk disusun. Dokumen tertulis menun
 
 ## Susunan dan batas
 
-[Indeks](../../README.md) mengarahkan pembaca ke PRD, cakupan demo, alur, desain, strategi, riset, dan spesifikasi AI. Pertahankan ADR serta riwayat audit. Konsolidasikan deskripsi berulang yang aman diganti dan gunakan rujukan Git untuk bukti yang masih berada pada Draft PR #12. Pemilik teknis dan keputusan ADR tetap pada tim.
+[Indeks](../../README.md) mengarahkan pembaca ke PRD utama yang memuat alur pengguna, cakupan demo, desain, strategi, riset, dan spesifikasi AI. Pertahankan ADR serta riwayat audit. Konsolidasikan deskripsi berulang yang aman diganti dan gunakan rujukan Git untuk bukti yang masih berada pada Draft PR #12. Pemilik teknis dan keputusan ADR tetap pada tim.
 
 ## Cara menilai
 
 Tinjau konsistensi visi dan aturan AAPLB. Cocokkan ID persyaratan dengan alur, metode uji, dan bukti. Validasi tautan, diagram, serta diff dokumentasi. Konfirmasi bahwa temuan hukum dan endpoint ditulis dalam batas yang didukung sumber dan bahwa batas persetujuan kelayakan produksi tetap eksplisit.
 
-Rencana implementasi, perubahan desain UI, dan pembukaan PR dokumentasi mengikuti tinjauan tertulis.
+Rencana implementasi, perubahan desain UI, menunggu tinjauan tertulis. Draft PR dokumentasi digunakan untuk review partner.

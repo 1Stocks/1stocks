@@ -1,6 +1,6 @@
 # PRD 1Stocks
 
-Draf v0.1 untuk tinjauan tim · 28 November 2026 · Pemilik dokumen menunggu penetapan tim.
+Draf v0.2 untuk tinjauan tim · 28 November 2026 · Pemilik dokumen menunggu penetapan tim. Dokumen ini menjadi pintu masuk untuk tujuan produk, alur pengguna, dan batas tiap fase.
 
 ## Visi dan pengguna
 
@@ -15,6 +15,44 @@ Investor ritel dapat menemukan beberapa representasi dari saham acuan yang sama.
 | Tim demo dan operasional | Menunjukkan bukti kuotasi, analisis, simulasi, atau settlement sesuai lingkungan yang benar. |
 
 Pintu sudah menawarkan AAPLX di Indonesia. Hipotesis diferensiasi 1Stocks adalah perbandingan lintas penerbit untuk satu saham, dengan dasar perbandingan yang dapat diperiksa dan penjelasan tentang kapan perbandingan belum dapat dilakukan. Bukti permintaan pengguna, manfaat AI, dan kesiapan distribusi masih harus dikumpulkan. [Riset pasar](../research/MARKET-RESEARCH.md)
+
+## Alur pengguna menyeluruh
+
+```mermaid
+flowchart TD
+    Entry["Buka 1Stocks"] --> Market["Cari saham di Pasar atau buka Apple"]
+    Market --> Detail["Lihat saham acuan dan representasi resmi"]
+    Detail -.-> Warning["AAPLB tampil dengan peringatan di Indonesia"]
+    Detail --> Budget["Masukkan anggaran IDR"]
+    Budget --> Quotes["Saring pembatasan lalu ambil kuotasi yang didukung"]
+    Quotes --> Enough{"Bukti perbandingan cukup?"}
+    Enough -->|Ya| Compare["Bandingkan biaya dan eksposur pada basis yang sama"]
+    Enough -->|Belum| Abstain["Tampilkan skenario dan alasan tanpa peringkat"]
+    Compare --> Review["Tinjau hasil minimum, biaya, dan masa berlaku"]
+    Abstain --> Review
+    Review -.-> Session["Masuk Google melalui Privy jika analisis diminta"]
+    Session --> AI["Baca penjelasan berbukti bila tersedia"]
+    AI --> Review
+    Review --> Preview["Selesaikan pratinjau tanpa transaksi"]
+    Preview -.-> Gates{"Fase produksi dan syarat distribusi serta rute terpenuhi?"}
+    Gates -->|Belum| Closed["Pembelian tetap dinonaktifkan"]
+    Gates -->|Ya| Authorize["Simulasi, tinjau, dan otorisasi transaksi"]
+    Authorize --> Settle["Pantau settlement dan cocokkan saldo penerima"]
+    Settle --> Activity["Lihat portofolio dan riwayat"]
+```
+
+| Tahap | Hasil bagi pengguna | Cakupan dan kondisi penting |
+| --- | --- | --- |
+| 1. Masuk atau lanjut sebagai tamu | Pengguna dapat menjelajah dan meninjau kuotasi tanpa sesi. Login Google melalui Privy membuka analisis berautentikasi serta akses wallet. | Alur tamu tersedia. Untuk akun aktif, pulihkan sesi dan embedded wallet Solana, tampilkan alamat, serta sediakan logout. Verifikasi sesi Google hingga pemulihan wallet masih diperlukan. |
+| 2. Temukan saham dan produk | Pengguna mencari saham acuan dan membuka detail penerbit dan deployment. | Apple adalah alur kuotasi awal. Aset lain dapat tampil sebagai katalog. AAPLB diberi peringatan Indonesia dan dikeluarkan sebelum kuotasi, peringkat, atau pembelian. |
+| 3. Masukkan anggaran IDR | Pengguna melihat nominal yang dimasukkan dan basis pendanaan kuotasi. | Nominal adalah konteks pratinjau. Aset pendanaan, jaringan, dan asumsi saldo terlihat sebagai detail. Pendanaan fiat dan penarikan rupiah menunggu jalur yang disetujui. |
+| 4. Bandingkan penawaran | Pengguna melihat minimum output yang dilaporkan penyedia, biaya yang dilaporkan, dan masa berlaku. | Normalisasi eksposur, kurs, dan biaya sebelum memberi peringkat. Kondisi dana yang berbeda tampil terpisah. Jika kuotasi hilang atau kedaluwarsa, minta penyegaran. |
+| 5. Baca analisis bila tersedia | Pengguna memahami perbedaan produk dan rute serta alasan sistem menahan penilaian. | OpenAI menjelaskan bukti. Aturan kelayakan, hitungan, dan peringkat di server tetap deterministik. Ketika AI gagal atau login dibatalkan, kuotasi tetap tersedia sesuai konfigurasi dan kondisi layanan. |
+| 6. Tinjau dan selesaikan pratinjau | Pengguna melihat ringkasan penerbit, estimasi, minimum, biaya yang diketahui, dan batas status. | Jalur Demo Day berakhir di sini. Simulasi mainnet baca-saja dan transfer SPL devnet disajikan sebagai bukti teknis terpisah. |
+| 7. Otorisasi transaksi | Pengguna yang memenuhi syarat menyetujui transaksi spesifik dengan penerima dan batas yang jelas. | Target produksi. Validasi izin, pendanaan, wallet, kuotasi, route dan simulasi. Perubahan material memerlukan persetujuan baru. Jika saldo kurang, izin belum cukup, atau simulasi gagal, tahan pengiriman. |
+| 8. Verifikasi hasil | Pengguna melihat status terkonfirmasi, saldo, bukti explorer, dan riwayat. | Target produksi. Simpan identitas transaksi untuk status tertunda. Periksa transaksi yang sama sebelum pengiriman ulang. Pisahkan saldo mainnet dari devnet. |
+
+Detail lingkungan, bukti, dan prioritas ada di [cakupan MVP](MVP-SCOPE.md). Persyaratan di bawah menjadi acuan saat tim siap memecah pekerjaan.
 
 ## Persyaratan produk
 

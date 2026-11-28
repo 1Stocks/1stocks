@@ -25,7 +25,7 @@ Perbandingan lintas jaringan tersedia saat `APPLE_MULTICHAIN_QUOTE_PREVIEW` bern
 ## Arsitektur dan kontribusi
 
 - [Arsitektur, jaringan, dan batas implementasi](docs/architecture/tokenized-equities.md)
-- [Usulan ADR 0002 tentang seleksi produk lintas jaringan](docs/adr/0002-seleksi-produk-lintas-jaringan.md)
+- [Indeks keputusan arsitektur](docs/adr/README.md)
 - [Bukti pembatasan penerbit dan matriks kelayakan](docs/architecture/eligibility-evidence.md)
 - [Diagnosis simulasi kuotasi Apple di Solana](docs/architecture/apple-solana-simulation.md)
 - [Workspace operator Solana](contracts/solana/README.md)
