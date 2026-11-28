@@ -49,7 +49,13 @@ test("allows citations to official catalog entries with their network restrictio
     assert.equal(bstocks.symbol, "AAPLB");
     assert.ok(["unsupported-chain", "stale"].includes(bstocks.status));
     assert.equal(bstocks.deployments[0].chain, "eip155:56");
-    assert.ok(payload.text.format.schema.properties.points.items.properties.evidence.items.enum.includes(bstocks.id));
+    const points = payload.text.format.schema.properties.points;
+    assert.equal(points.minItems, 1);
+    assert.equal(points.maxItems, 3);
+    const citations = points.items.properties.evidence;
+    assert.equal(citations.minItems, 1);
+    assert.equal(citations.maxItems, 3);
+    assert.ok(citations.items.enum.includes(bstocks.id));
     return Response.json({ status: "completed", output: [{ type: "message", content: [{
       type: "output_text",
       text: JSON.stringify({ points: [{ text: "AAPLB tersedia di jaringan BNB.", evidence: [bstocks.id] }] }),
