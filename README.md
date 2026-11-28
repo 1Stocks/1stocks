@@ -1,6 +1,6 @@
 # 1Stocks
 
-1Stocks adalah agregator saham tertokenisasi lintas penerbit dan jaringan, dengan analisis berbantuan AI, untuk investor ritel di berbagai negara. Indonesia adalah pasar awal. [Dokumentasi produk dan teknis](docs/README.md) memuat cakupan demo, bukti, dan batas distribusi.
+1Stocks adalah agregator saham tertokenisasi lintas penerbit dan jaringan untuk investor ritel Indonesia. Aplikasi menyatukan produk dari beberapa penerbit dan jaringan, dengan penjelasan AI opsional berdasarkan kuotasi dan dokumen penerbit.
 
 ## Kemampuan saat ini
 
@@ -8,6 +8,10 @@
 - Pratinjau Apple membandingkan kuotasi LI.FI untuk AAPLx dan AAPLon di Solana mainnet. Masukkan nominal rupiah, bandingkan hasil, lalu tinjau pratinjau. AAPLB tercatat di BNB Chain dan dibatasi untuk Indonesia oleh penerbit. Pratinjau dasar memakai dua mint Apple di Solana. Lingkungan uji yang disetujui tim dapat menampilkan estimasi tambahan untuk deployment Apple di Ethereum dan BNB Smart Chain.
 - Privy menyediakan login Google dan embedded wallet Solana jika dikonfigurasi. Portofolio membaca saldo AAPLx dan AAPLon dari Solana mainnet. Saldo SOL devnet tampil secara terpisah.
 - Demo devnet berisi transfer SPL dengan aset uji dan persetujuan pengguna. Pembayaran rupiah, pembelian mainnet, dan eksekusi lintas chain masih dalam tahap rencana.
+
+## Kelayakan sebelum pembelian
+
+Seleksi produksi memerlukan bukti kebijakan penerbit, kelayakan investor, izin distribusi, dan kesiapan wallet serta rute. Pemeringkat membandingkan eksposur saham dan biaya dalam anggaran setara. Kuotasi baca-saja dan analisis AI membantu pengguna memahami opsi yang tersedia. Eksekusi produksi masih nonaktif.
 
 ## Pengembangan lokal
 
@@ -25,7 +29,7 @@ Perbandingan lintas jaringan tersedia saat `APPLE_MULTICHAIN_QUOTE_PREVIEW` bern
 ## Arsitektur dan kontribusi
 
 - [Arsitektur, jaringan, dan batas implementasi](docs/architecture/tokenized-equities.md)
-- [Indeks keputusan arsitektur](docs/adr/README.md)
+- [Usulan ADR 0002 tentang seleksi produk lintas jaringan](docs/adr/0002-seleksi-produk-lintas-jaringan.md)
 - [Bukti pembatasan penerbit dan matriks kelayakan](docs/architecture/eligibility-evidence.md)
 - [Diagnosis simulasi kuotasi Apple di Solana](docs/architecture/apple-solana-simulation.md)
 - [Workspace operator Solana](contracts/solana/README.md)
