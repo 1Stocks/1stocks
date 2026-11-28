@@ -1,18 +1,19 @@
 import {
   SOLANA_MAINNET_LIFI_CHAIN_ID as solana, tokenRegistry, type AppleBuyToken, type AppleMultichainOffer,
-  type AppleMultichainPreview, type AppleQuoteNetwork, type QuoteErrorCode, type QuoteFee,
+  type AppleFundingBenchmark, type AppleMultichainPreview, type AppleQuoteNetwork, type QuoteErrorCode, type QuoteFee,
 } from "@1stocks/shared";
 import { catalog, catalogAvailability } from "../../../packages/asset-catalog/registry/catalog";
 import { issuerJurisdictionPolicy } from "../../../packages/asset-catalog/registry/issuer-policies";
 import { SOLANA_MAINNET, SOLANA_MAINNET_CHAIN_ID } from "../../../packages/asset-catalog/registry/networks";
+import { normalizeXstocksExposure, readXstocksExposure } from "./apple-share-exposure";
 import { isAtomic, normalizeLifiFees } from "./lifi-quote-data";
 
 const routesUrl = "https://li.quest/v1/advanced/routes";
 const ttlMs = 25_000;
 const networks = {
-  [solana]: { key: SOLANA_MAINNET, id: SOLANA_MAINNET_CHAIN_ID, name: "Solana" },
-  1: { key: "eip155:1", id: "eip155:1", name: "Ethereum" },
-  56: { key: "eip155:56", id: "eip155:56", name: "BNB Smart Chain" },
+  [solana]: { key: SOLANA_MAINNET, id: SOLANA_MAINNET_CHAIN_ID, name: "Solana", gas: "SOL" },
+  1: { key: "eip155:1", id: "eip155:1", name: "Ethereum", gas: "ETH" },
+  56: { key: "eip155:56", id: "eip155:56", name: "BNB Smart Chain", gas: "BNB" },
 } as const;
 type Chain = keyof typeof networks;
 type RouteToken = { chainId: Chain; address: string; decimals: number };
@@ -149,7 +150,7 @@ export function createAppleMultichainQuotePreview({ apiKey, fetcher, now, rateLi
 
   function unavailable(code: QuoteErrorCode): AppleMultichainPreview {
     return {
-      mode: "indicative", productionEligibility: "UNKNOWN", benchmark: null,
+      mode: "indicative", productionEligibility: "UNKNOWN", financialComparison: "ABSTAIN", benchmark: null,
       offers: targets.map(({ token, chainId }) => ({ token, network: networks[chainId].name, status: "unavailable", code })),
     };
   }
@@ -160,15 +161,22 @@ export function createAppleMultichainQuotePreview({ apiKey, fetcher, now, rateLi
     if ("code" in conversion) return unavailable(conversion.code);
 
     const minimumUsdcAtomic = conversion.route.minimum;
-    const unit = 10n ** BigInt(usdc[solana].decimals);
-    const minimum = BigInt(minimumUsdcAtomic);
-    const wholeUnits = minimum / unit * unit;
-    const comparisonUsdcAtomic = (wholeUnits || minimum).toString();
+    const ratePrecision = 10n ** 12n;
+    const rate = BigInt(minimumUsdcAtomic) * ratePrecision /
+      (BigInt(amount) * 10n ** BigInt(usdc[solana].decimals - idrx.decimals));
     const deadline = conversion.fetchedAt + ttlMs;
-    const benchmark = {
-      minimumUsdcAtomic, comparisonUsdcAtomic,
+    const benchmark: AppleFundingBenchmark = {
+      idrBudgetAtomic: amount,
+      conversion: "LI.FI IDRX to USDC on Solana",
+      minimumUsdcAtomic,
+      expectedUsdcAtomic: conversion.route.expected,
+      minimumRateUsdcPerIdrx: (rate / ratePrecision).toString() + "." + (rate % ratePrecision).toString().padStart(12, "0"),
       fetchedAt: new Date(conversion.fetchedAt).toISOString(),
       expiresAt: new Date(deadline).toISOString(),
+    };
+    const xStocksProof = {
+      Solana: readXstocksExposure("Solana", fetcher, signal, now),
+      Ethereum: readXstocksExposure("Ethereum", fetcher, signal, now),
     };
     const offers = await Promise.all(targets.map(async (target): Promise<AppleMultichainOffer> => {
       const { token, issuer, chainId } = target;
@@ -183,18 +191,26 @@ export function createAppleMultichainQuotePreview({ apiKey, fetcher, now, rateLi
 
       let source: RouteToken = usdc[solana];
       let fundingBasis: Extract<AppleMultichainOffer, { status: "quoted" }>["fundingBasis"] = "solana-usdc";
-      let fundingAtomic = comparisonUsdcAtomic;
+      let fundingAtomic = minimumUsdcAtomic;
       let result = await request(source, target, fundingAtomic, signal);
       if ("code" in result && result.code === "NO_ROUTE" && chainId !== solana) {
         source = usdc[chainId];
         fundingBasis = chainId === 56 ? "bnb-prefunded-binance-peg-usdc" : "ethereum-prefunded-usdc";
-        fundingAtomic = (BigInt(comparisonUsdcAtomic) * 10n ** BigInt(source.decimals - usdc[solana].decimals)).toString();
+        fundingAtomic = (BigInt(minimumUsdcAtomic) * 10n ** BigInt(source.decimals - usdc[solana].decimals)).toString();
         result = await request(source, target, fundingAtomic, signal);
       }
       if ("code" in result) return { token, network, status: "unavailable", code: result.code };
 
       return {
         token, network, status: "quoted", fundingBasis,
+        walletRequirements: {
+          balance: "hypothetical", sourceWallet: networks[source.chainId].name, destinationWallet: network,
+          sourceGasAsset: networks[source.chainId].gas,
+          destinationGas: source.chainId === chainId ? "same-chain" : "unverified",
+        },
+        shareExposure: token === "AAPLx" && network !== "BNB Smart Chain"
+          ? normalizeXstocksExposure(network, result.route.expected, result.route.minimum, target.decimals, await xStocksProof[network])
+          : null,
         route: {
           id: result.route.id, issuer, provider: "LI.FI", tool: result.route.tool,
           funding: { chainId: networks[source.chainId].id, address: source.address },
@@ -206,7 +222,7 @@ export function createAppleMultichainQuotePreview({ apiKey, fetcher, now, rateLi
         costData: result.route.costData, fetchedAt: new Date(result.fetchedAt).toISOString(), expiresAt: benchmark.expiresAt,
       };
     }));
-    return { mode: "indicative", productionEligibility: "UNKNOWN", benchmark, offers };
+    return { mode: "indicative", productionEligibility: "UNKNOWN", financialComparison: "ABSTAIN", benchmark, offers };
   }
 
   return function getPreview(amount: string): Promise<AppleMultichainPreview> {

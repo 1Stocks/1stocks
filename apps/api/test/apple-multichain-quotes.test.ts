@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { SOLANA_MAINNET_LIFI_CHAIN_ID as solana, tokenRegistry, type AppleQuotesResponse } from "@1stocks/shared";
 import { createAppleMultichainQuotePreview } from "../src/apple-multichain-quotes";
+import { normalizeXstocksExposure, readXstocksExposure } from "../src/apple-share-exposure";
 import { analysisEvidence, explainIssuers } from "../src/issuer-analysis";
 
 const timestamp = Date.parse("2026-11-28T04:00:00Z");
@@ -13,7 +14,7 @@ const aaplxEth = "0x9d275685dc284c8eb1c79f6aba7a63dc75ec890a";
 const aaplonBnb = "0x390a684ef9cade28a7ad0dfa61ab1eb3842618c4";
 const amount = "20000000";
 const minimum = "10500000";
-const budget = "10000000";
+const budget = minimum;
 
 type RequestData = {
   fromChainId: number; toChainId: number;
@@ -44,6 +45,10 @@ function lifiFixture(params: RequestData) {
 function setup(replay = (params: RequestData) => lifiFixture(params)) {
   const sent: RequestData[] = [];
   const fetcher: typeof fetch = async (url, init) => {
+    if (String(url).startsWith("https://api.xstocks.fi/")) {
+      assert.equal(new Headers(init?.headers).get("x-lifi-api-key"), null);
+      return Response.json({ currentMultiplier: 1.25, newMultiplier: 0, activationDateTime: 0 });
+    }
     assert.equal(String(url), "https://li.quest/v1/advanced/routes");
     assert.equal(init?.method, "POST");
     const params = JSON.parse(String(init.body));
@@ -67,21 +72,32 @@ test("multichain quote preview binds all routes to the conversion benchmark and 
   assert.equal(preview.mode, "indicative");
   assert.equal(preview.productionEligibility, "UNKNOWN");
   assert.equal(preview.benchmark?.minimumUsdcAtomic, minimum);
-  assert.equal(preview.benchmark?.comparisonUsdcAtomic, budget);
+  assert.equal(preview.benchmark?.idrBudgetAtomic, amount);
+  assert.equal(preview.benchmark?.minimumRateUsdcPerIdrx, "0.000052500000");
+  assert.equal(preview.financialComparison, "ABSTAIN");
   assert.equal(preview.offers.length, 5);
   assert.equal(sent.length, 8);
   assert.ok(sent.filter(item => item.fromTokenAddress === usdcSol).every(item => item.fromAmount === budget));
   assert.ok(sent.some(item => item.fromTokenAddress === usdcEth && item.fromAmount === budget));
-  assert.ok(sent.some(item => item.fromTokenAddress === usdcBnb && item.fromAmount === "10000000000000000000"));
+  assert.ok(sent.some(item => item.fromTokenAddress === usdcBnb && item.fromAmount === "10500000000000000000"));
   assert.deepEqual(preview.offers.map(offer => offer.status === "quoted" ? offer.fundingBasis : null), [
     "solana-usdc", "ethereum-prefunded-usdc", "solana-usdc", "solana-usdc", "bnb-prefunded-binance-peg-usdc",
   ]);
   for (const offer of preview.offers) {
     assert.equal(offer.status, "quoted");
+    assert.equal(offer.walletRequirements.balance, "hypothetical");
     assert.equal(offer.costData, "reported");
     assert.equal(offer.feeCosts.length, 1);
     assert.equal(offer.expiresAt, preview.benchmark?.expiresAt);
   }
+  const [solanaXstocks, ethereumXstocks, ...ondoOffers] = preview.offers;
+  assert.equal(solanaXstocks.status, "quoted");
+  assert.equal(solanaXstocks.shareExposure?.estimateAtomic, "13750000");
+  assert.equal(solanaXstocks.shareExposure?.minimumAtomic, "13125000");
+  assert.equal(ethereumXstocks.status, "quoted");
+  assert.equal(ethereumXstocks.shareExposure?.minimumAtomic, ethereumXstocks.minimumOutputAtomic);
+  assert.equal(ethereumXstocks.walletRequirements.sourceGasAsset, "ETH");
+  assert.ok(ondoOffers.every(offer => offer.status === "quoted" && offer.shareExposure === null));
   assert.doesNotMatch(JSON.stringify(preview), /must-not-return-calldata/);
 });
 
@@ -123,6 +139,8 @@ test("binds AI explanations to current quotes from distinct destination chains",
   assert.equal(evidence.multichain.length, 5);
   assert.ok(evidence.multichain.every(route => route.priceImpact === "unknown" && route.productionEligibility === "UNKNOWN"));
   assert.ok(evidence.multichain.some(route => route.type === "cross-chain"));
+  assert.ok(evidence.multichain.every(route => route.comparison === "ABSTAIN"));
+  assert.equal(evidence.fundingBenchmark?.idrBudgetAtomic, amount);
   const response = (evidence: string[]): typeof fetch => async () => Response.json({
     status: "completed", output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify({
       points: [{ text: "Ethereum dan Solana memiliki sumber dana dan biaya yang perlu diperiksa.", evidence }],
@@ -133,4 +151,17 @@ test("binds AI explanations to current quotes from distinct destination chains",
   assert.equal((await explainIssuers(data, "unused", "fixture", response([solQuote]))).status, "INVALID_MODEL_OUTPUT");
   assert.equal((await explainIssuers(data, "unused", "fixture", response([solQuote, ethQuote]))).status, "OK");
   assert.equal(analysisEvidence(data, Date.now() + 61_000).multichain.length, 0);
+});
+
+test("rejects missing or pending multiplier evidence before showing share exposure", async () => {
+  const signal = AbortSignal.timeout(1000);
+  for (const payload of [
+    { newMultiplier: 0, activationDateTime: 0 },
+    { currentMultiplier: 1.1, newMultiplier: 2, activationDateTime: 1_795_000_000 },
+    { currentMultiplier: 0, newMultiplier: 0, activationDateTime: 0 },
+  ]) {
+    const proof = await readXstocksExposure("Solana", async () => Response.json(payload), signal, () => timestamp);
+    assert.equal(proof, null);
+    assert.equal(normalizeXstocksExposure("Solana", "100", "90", 8, proof), null);
+  }
 });
