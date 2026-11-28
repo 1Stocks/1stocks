@@ -85,13 +85,42 @@ export type AppleIssuerSelection = {
 
 export type AppleQuoteNetwork = "Solana" | "Ethereum" | "BNB Smart Chain";
 
+export type AppleFundingBasis = "solana-usdc" | "ethereum-prefunded-usdc" | "bnb-prefunded-binance-peg-usdc";
+
+export type AppleFundingBenchmark = {
+  idrBudgetAtomic: string;
+  conversion: "LI.FI IDRX to USDC on Solana";
+  minimumUsdcAtomic: string;
+  expectedUsdcAtomic: string;
+  minimumRateUsdcPerIdrx: string;
+  fetchedAt: string;
+  expiresAt: string;
+};
+
+export type AppleShareExposure = {
+  estimateAtomic: string;
+  minimumAtomic: string;
+  decimals: number;
+  source: string;
+  observedAt: string;
+  basis: "raw-times-issuer-multiplier" | "evm-equity-adjusted";
+};
+
 export type AppleMultichainOffer = { token: AppleBuyToken; network: AppleQuoteNetwork } & (
   | { status: "unavailable"; code: QuoteErrorCode }
   | {
       status: "quoted";
       route: PurchaseRoute;
       funding: QuoteAmount<"USDC">;
-      fundingBasis: "solana-usdc" | "ethereum-prefunded-usdc" | "bnb-prefunded-binance-peg-usdc";
+      fundingBasis: AppleFundingBasis;
+      walletRequirements: {
+        balance: "hypothetical";
+        sourceWallet: AppleQuoteNetwork;
+        destinationWallet: AppleQuoteNetwork;
+        sourceGasAsset: "SOL" | "ETH" | "BNB";
+        destinationGas: "same-chain" | "unverified";
+      };
+      shareExposure: AppleShareExposure | null;
       output: QuoteAmount<AppleBuyToken>;
       minimumOutputAtomic: string;
       feeCosts: QuoteFee[];
@@ -105,7 +134,8 @@ export type AppleMultichainOffer = { token: AppleBuyToken; network: AppleQuoteNe
 export type AppleMultichainPreview = {
   mode: "indicative";
   productionEligibility: "UNKNOWN";
-  benchmark: { minimumUsdcAtomic: string; comparisonUsdcAtomic: string; fetchedAt: string; expiresAt: string } | null;
+  benchmark: AppleFundingBenchmark | null;
+  financialComparison: "ABSTAIN";
   offers: AppleMultichainOffer[];
 };
 
